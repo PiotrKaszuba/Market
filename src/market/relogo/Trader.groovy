@@ -22,11 +22,13 @@ class Trader extends ReLogoTurtle {
 	int travelCost = 1
 	int needThreshold = 25
 	def task = null
-	def taskSteps = null
+	List taskSteps = null
 	def miningFatigue = 10
 	int ambition
 	boolean alive = true
 	String state = 'free'
+	def velocity = 5
+	
 	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition) {
 		this.id = id
 		this.rice = rice
@@ -117,7 +119,7 @@ class Trader extends ReLogoTurtle {
 			
 		}
 		
-		taskSteps = [['do' : 'goto', 'target' : task.target], ['do' : taskGoal, 'timeout' : timeout ] ]
+		taskSteps = [['do' : 'goto', 'target' : task.target], ['do' : taskGoal, 'timeout' : timeout, 'resource': panicRes ] ]
 		
 		
 		
@@ -128,7 +130,38 @@ class Trader extends ReLogoTurtle {
 	}
 	
 	def continueTask() {
-		
+		if(taskSteps.isEmpty()) {
+			finishedTask()
+		}
+		else if(taskSteps[0].get('do').equals('goto')) {
+			if(pxCor()==taskSteps[0].get('target').pxCor() && pyCor()==taskSteps[0].get('target').pyCor()) {
+				taskSteps.remove(0)
+			}else {
+				face(taskSteps[0].getAt('target'))
+				forward(velocity)
+			}
+		}
+		else if(taskSteps[0].get('do').equals('buy')){
+			if(state.equals("free")) {
+				taskSteps[0].get('target').register(it, false, taskSteps[0].get('resource').equals('rice'), taskSteps[0].get('amount'), taskSteps[0].get('pricePerUnit'))
+				state = 'registered'
+			}
+			else if(state.equals('regitered') && taskSteps[0].get('timeout')>0) {
+				taskSteps[0].put('timeout',taskSteps[0].get('timeout') - 1)
+			}
+			else {
+				state = 'free'
+				finishedTask()
+				taskSteps[0].get('target').unregister(it)
+				taskSteps.remove(0)
+			}
+		}
+		else if(taskSteps[0].get('do').equals('sell')){
+			
+		}
+		else(taskSteps[0].get('do').equals('mine')){
+			
+		}
 	}
 	
 	
