@@ -216,6 +216,203 @@ public class ReLogoPatch extends BasePatch{
 	}
 
 	/**
+	 * Sprouts (makes) a number of new resources and then executes a set of commands on the
+	 * created resources.
+	 * 
+	 * @param number
+	 *            a number
+	 * @param closure
+	 *            a set of commands
+	 * @return created resources
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> sproutResources(int number, Closure closure) {
+		AgentSet<market.relogo.Resource> result = new AgentSet<>();
+		AgentSet<Turtle> createResult = this.sprout(number,closure,"Resource");
+		for (Turtle t : createResult){
+			if (t instanceof market.relogo.Resource){
+				result.add((market.relogo.Resource)t);
+			}
+		} 
+		return result;
+	}
+
+	/**
+	 * Sprouts (makes) a number of new resources and then executes a set of commands on the
+	 * created resources.
+	 * 
+	 * @param number
+	 *            a number
+	 * @param closure
+	 *            a set of commands
+	 * @return created resources
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> sproutResources(int number) {
+		return sproutResources(number,null);
+	}
+
+	/**
+	 * Returns an agentset of resources from the patch of the caller.
+	 * 
+	 * @return agentset of resources from the caller's patch
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resourcesHere(){
+	  Grid grid = getMyObserver().getGrid();
+	  GridPoint gridPoint = grid.getLocation(this);
+	  AgentSet<market.relogo.Resource> result = new AgentSet<market.relogo.Resource>();
+	  for (Turtle t : Utility.getTurtlesOnGridPoint(gridPoint,getMyObserver(),"resource")){
+			if (t instanceof market.relogo.Resource)
+			result.add((market.relogo.Resource)t);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the agentset of resources on the patch at the direction (ndx, ndy) from the
+	 * caller.
+	 * 
+	 * @param nX
+	 *            a number
+	 * @param nY
+	 *            a number
+	 * @returns agentset of resources at the direction (nX, nY) from the caller
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resourcesAt(Number nX, Number nY){
+		double dx = nX.doubleValue();
+		double dy = nY.doubleValue();
+		double[] displacement = {dx,dy};
+
+		try{
+		GridPoint gridPoint = Utility.getGridPointAtDisplacement(getGridLocationAsNdPoint(),displacement,getMyObserver());
+		AgentSet<market.relogo.Resource> result = new AgentSet<market.relogo.Resource>();						
+		for (Turtle t : Utility.getTurtlesOnGridPoint(gridPoint,getMyObserver(),"resource")){
+			if (t instanceof market.relogo.Resource)
+			result.add((market.relogo.Resource)t);
+		}
+		return result;
+		}
+		catch(SpatialException e){
+			return new AgentSet<market.relogo.Resource>();
+		}
+	}
+
+	/**
+	 * Returns an agentset of resources on a given patch.
+	 * 
+	 * @param p
+	 *            a patch
+	 * @return agentset of resources on patch p
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resourcesOn(Patch p){
+		AgentSet<market.relogo.Resource> result = new AgentSet<market.relogo.Resource>();						
+		for (Turtle t : Utility.getTurtlesOnGridPoint(p.getGridLocation(),getMyObserver(),"resource")){
+			if (t instanceof market.relogo.Resource)
+			result.add((market.relogo.Resource)t);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns an agentset of resources on the same patch as a turtle.
+	 * 
+	 * @param t
+	 *            a turtle
+	 * @return agentset of resources on the same patch as turtle t
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resourcesOn(Turtle t){
+		AgentSet<market.relogo.Resource> result = new AgentSet<market.relogo.Resource>();						
+		for (Turtle tt : Utility.getTurtlesOnGridPoint(Utility.ndPointToGridPoint(t.getTurtleLocation()),getMyObserver(),"resource")){
+			if (tt instanceof market.relogo.Resource)
+			result.add((market.relogo.Resource)tt);
+		}
+		return result;
+	}
+
+	/**
+	 * Returns an agentset of resources on the patches in a collection or on the patches
+	 * that a collection of turtles are.
+	 * 
+	 * @param a
+	 *            a collection
+	 * @return agentset of resources on the patches in collection a or on the patches
+	 *         that collection a turtles are
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resourcesOn(Collection c){
+
+		if (c == null || c.isEmpty()){
+			return new AgentSet<market.relogo.Resource>();
+		}
+
+		Set<market.relogo.Resource> total = new HashSet<market.relogo.Resource>();
+		if (c.iterator().next() instanceof Turtle){
+			for (Object o : c){
+				if (o instanceof Turtle){
+					Turtle t = (Turtle) o;
+					total.addAll(resourcesOn(t));
+				}
+			}
+		}
+		else {
+			for (Object o : c){
+				if (o instanceof Patch){
+					Patch p = (Patch) o;
+					total.addAll(resourcesOn(p));
+				}
+			}
+		}
+		return new AgentSet<market.relogo.Resource>(total);
+	}
+
+	/**
+	 * Queries if object is a resource.
+	 * 
+	 * @param o
+	 *            an object
+	 * @return true or false based on whether the object is a resource
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public boolean isResourceQ(Object o){
+		return (o instanceof market.relogo.Resource);
+	}
+
+	/**
+	 * Returns an agentset containing all resources.
+	 * 
+	 * @return agentset of all resources
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public AgentSet<market.relogo.Resource> resources(){
+		AgentSet<market.relogo.Resource> a = new AgentSet<market.relogo.Resource>();
+		for (Object e : this.getMyObserver().getContext().getObjects(market.relogo.Resource.class)) {
+			if (e instanceof market.relogo.Resource){
+				a.add((market.relogo.Resource)e);
+			}
+		}
+		return a;
+	}
+
+	/**
+	 * Returns the resource with the given who number.
+	 * 
+	 * @param number
+	 *            a number
+	 * @return turtle number
+	 */
+	@ReLogoBuilderGeneratedFor("market.relogo.Resource")
+	public market.relogo.Resource resource(Number number){
+		Turtle turtle = Utility.turtleU(number.intValue(), getMyObserver());
+		if (turtle instanceof market.relogo.Resource)
+			return (market.relogo.Resource) turtle;
+		return null;
+	}
+
+	/**
 	 * Sprouts (makes) a number of new traders and then executes a set of commands on the
 	 * created traders.
 	 * 

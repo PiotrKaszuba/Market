@@ -21,6 +21,30 @@ class Market extends ReLogoTurtle {
 	int last_transaction = 0
 	int destroy_after
 	int transactions_per_step = 1
+	
+	
+	
+	List history = []
+	
+	
+	def getHistoryPureRecord() {
+		return ['water' : ['transactions': [], 'resourceLeft': 0], 'rice': ['transactions': [], 'resourceLeft': 0]]
+	}
+	def transactionPureRecord() {
+		return ['pricePerUnit' : 0, 'amount':0]
+	}
+	def meanOfResourceLft(def resource) {
+		
+	}
+	def meanAmountSoldPerStep(def resource) {
+		
+	}
+	def discountedMeanPrice(def resource) {
+		
+	}
+	
+	
+	
 	// 'water' : 'sell', 'buy'
 	Map registered = [false : [true : [], false : []], true: [true : [], false : []]]
 	
@@ -37,6 +61,8 @@ class Market extends ReLogoTurtle {
 			die()
 			return
 		}
+		history.add(historyPureRecord())
+		
 		def last_transactions = [true : true, false : true]
 		def transactions_current_step = 0
 		while((last_transactions[true] || last_transactions[false]) && transactions_current_step < transactions_per_step) {
@@ -45,6 +71,8 @@ class Market extends ReLogoTurtle {
 				if(last_transactions[v] == true) transactions_current_step +=1
 				}
 		}
+		
+	
 		last_transaction+=1
 		}
 	}

@@ -30,9 +30,11 @@ class UserObserver extends ReLogoObserver{
 			turn +=1
 			println("turn "+ turn)
 			ask(turtles()){
-				left(random(90))
-				right(random(90))
-				forward(random(10))
+				if(it instanceof Trader) {
+					left(random(90))
+					right(random(90))
+					forward(random(10))
+				}
 				it.step()
 
 				

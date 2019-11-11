@@ -16,9 +16,10 @@ class Trader extends ReLogoTurtle {
 	int rice
 	int water
 	int gold
-	
-	int riceNeed
-	int waterNeed
+	int panicThreshold = 10
+	int hunger
+	int thirst
+	int travelCost = 1
 	int needThreshold = 25
 	boolean alive = true
 	String state = 'free'
@@ -27,8 +28,8 @@ class Trader extends ReLogoTurtle {
 		this.rice = rice
 		this.water = water
 		this.gold = gold
-		this.riceNeed = riceNeed
-		this.waterNeed = waterNeed
+		this.hunger = riceNeed
+		this.thirst = waterNeed
 	}
 	
 	def finishedTask() {
@@ -36,27 +37,68 @@ class Trader extends ReLogoTurtle {
 	}
 	
 	
+	
+	
+	def panic() {
+		def panicRes
+		def otherResourceRisk
+		if(water<=rice) {
+			panicRes = 'water'
+			otherResourceRisk = sqrt(max(1, 1.2*panicThreshold-rice))
+		}
+		else {
+			panicRes = 'rice'
+			otherResourceRisk = (panicThreshold*1.2)/(rice+1)
+		}
+		
+		List<TaskAttractiveness> taskAtts = []
+		
+		ask(turtles()){
+			if(it instanceof Resource && it.type.equals(panicRes)) {
+				def dist = distance(it)
+				def cost = dist * travelCost + dist
+				def gain = 5 + it.r * 10
+				def attractiveness = (gain - cost - cost*otherResourceRisk)*(Math.random()/2.5 + 0.6)
+				taskAtts.add(new TaskAttractiveness(attractiveness, cost, gain, it, panicRes))
+			}
+			if(it instanceof Market ) {
+				
+				
+			}
+			
+			
+		}
+		
+		
+	}
+	
 	def step() {
 		if(alive) {
-			if(riceNeed <=0 || waterNeed <= 0) {
+			if(hunger <=0 || thirst <= 0) {
 				alive = false
 				println("trader dead")
 				die()
 				return
 			}
-			riceNeed -=1
-			waterNeed -=1
+			hunger -=1
+			thirst -=1
 			
-			if(riceNeed<=needThreshold && rice >0) {
+			if(hunger<=needThreshold && rice >0) {
 				rice -=1
-				riceNeed+=100
+				hunger+=100
 				println("rice eat")
 			}
-			if(waterNeed<=needThreshold && water >0) {
+			if(thirst<=needThreshold && water >0) {
 				water -=1
-				waterNeed+=100
+				thirst+=100
 				println("water drink")
 			}
+			if(water<panicThreshold || rice<panicThreshold) {
+				panic()
+			}
+			
+			
+			
 			
 		}
 		
