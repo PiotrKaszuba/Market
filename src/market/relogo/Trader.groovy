@@ -54,15 +54,16 @@ class Trader extends ReLogoTurtle {
 		List<TaskAttractiveness> taskAtts = []
 		
 		ask(turtles()){
+			def dist = distance(it)
+			def cost = dist * travelCost + dist
 			if(it instanceof Resource && it.type.equals(panicRes)) {
-				def dist = distance(it)
-				def cost = dist * travelCost + dist
+				
 				def gain = 5 + it.r * 10
 				def attractiveness = (gain - cost - cost*otherResourceRisk)*(Math.random()/2.5 + 0.6)
 				taskAtts.add(new TaskAttractiveness(attractiveness, cost, gain, it, panicRes))
 			}
-			if(it instanceof Market ) {
-				
+			if(it instanceof Market && it.alive) {
+				def gain = 
 				
 			}
 			
