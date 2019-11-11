@@ -34,13 +34,40 @@ class Market extends ReLogoTurtle {
 		return ['pricePerUnit' : 0, 'amount':0]
 	}
 	def meanOfResourceLft(def resource) {
-		
+		def sum = 0
+		def counter = 0
+		history.each {
+			sum = sum + it.get(resource).get('resourceLeft')
+			counter = counter + 1
+		}
+		return sum/counter
 	}
 	def meanAmountSoldPerStep(def resource) {
-		
+		def sum = 0
+		def counter = 0
+		history.each {
+			it.get(resource).get('transactions').each { t ->
+				sum = sum + t.get('amount')
+				counter = counter + 1
+			}
+		}
+		return sum/counter
 	}
 	def discountedMeanPrice(def resource) {
+		def length = 0
+		history.each { 
+			length = length + it.get(resource).getAt('transactions').size()
+		}
 		
+		def sum = 0
+		def counter = 0
+		history.eachWithIndex { it, i ->
+			it.get(resource).get('transactions').each { t ->
+				sum = sum + t.get('amount')*(length - i)
+				counter = counter + (length - i)
+			}
+		}
+		return sum/counter
 	}
 	
 	
