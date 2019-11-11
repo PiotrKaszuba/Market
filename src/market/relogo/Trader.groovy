@@ -36,9 +36,6 @@ class Trader extends ReLogoTurtle {
 		
 	}
 	
-	
-	
-	
 	def panic() {
 		def panicRes
 		def otherResourceRisk
@@ -63,14 +60,9 @@ class Trader extends ReLogoTurtle {
 				taskAtts.add(new TaskAttractiveness(attractiveness, cost, gain, it, panicRes))
 			}
 			if(it instanceof Market && it.alive) {
-				def gain = 
-				
+				def gain = it.meanAmountSoldPerStep(panicRes)		
 			}
-			
-			
 		}
-		
-		
 	}
 	
 	def step() {
