@@ -3,9 +3,6 @@ package market.relogo
 import static repast.simphony.relogo.Utility.*
 import static repast.simphony.relogo.UtilityG.*
 
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF
-
-import javassist.expr.Instanceof
 import market.ReLogoTurtle
 import repast.simphony.relogo.Plural
 import repast.simphony.relogo.Stop
@@ -22,7 +19,7 @@ class Resource extends ReLogoTurtle {
 	def current_resource
 	def r = 1
 	
-	Resource(resource_type, r_factor, max_resource, resource_renewal) {
+	def construct(def resource_type, def r_factor, def max_resource, def resource_renewal) {
 		this.type = resource_type
 		this.r = r_factor
 		this.max_resource = max_resource
@@ -30,20 +27,20 @@ class Resource extends ReLogoTurtle {
 		this.resource_renewal = resource_renewal
 	}
 	
-	def register(trader) {
+	def register(Trader trader) {
 		registered.put(trader.id, 0)
 	}
 	
-	def unregister(trader) {
-		elapsed_time = registered.get(trader.id)
+	def unregister(Trader trader) {
+		def elapsed_time = registered.get(trader.id)
 		registered.remove(trader.id)
-		mined = (1 + (elapsed_time - 1)*r/2) * elapsed_time
-		mined
+		def mined = (1 + (elapsed_time - 1)*r/2) * elapsed_time
+		return mined
 	}
 	
 	def step() {
 		registered.each { trader, time ->
-			increment = current_resource/max_resource
+			def increment = current_resource/max_resource
 			time = time + increment
 			current_resource = current_resource - increment
 		}
