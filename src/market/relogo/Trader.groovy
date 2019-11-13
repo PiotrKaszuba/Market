@@ -85,7 +85,7 @@ class Trader extends ReLogoTurtle {
 			task = taskAtts.pop()
 		else 
 			task = null
-		while(! checkIfPossibleToFinish(task)) {
+		while(! checkIfPossibleToFinish(task, panicResConsumeAmount)) {
 			if(! taskAtts.empty)
 				task = taskAtts.pop()
 			else
@@ -110,21 +110,23 @@ class Trader extends ReLogoTurtle {
 			
 			def timeoutFactor = min(1, otherResLeft/ (panicThreshold*100))
 			
-			timeout = timeoutFactor * timeout
+			//here
+			timeout =  max(1, Math.floor(timeoutFactor * timeout ).toInteger())
 			
 			
 			
 			
 		}
 		
-		taskSteps = [['do' : 'goto', 'target' : task.target], ['do' : taskGoal, 'timeout' : timeout ] ]
-		
-		
-		
+		taskSteps = [['do' : 'goto', 'target' : task.target], ['do' : taskGoal, 'timeout' : timeout, 'resource' : panicRes] ]
 	}
 	
 	def checkIfPossibleToFinish(TaskAttractiveness ta, int amount) {
-		
+		//here
+		if(amount - ta.cost-25 <=0) {
+			return false
+		}
+		else return true
 	}
 	
 	def continueTask() {
