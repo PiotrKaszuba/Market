@@ -115,7 +115,7 @@ class Trader extends ReLogoTurtle {
 			//here
 			timeout =  max(1, Math.floor(timeoutFactor * timeout ).toInteger())
 			
-			
+			taskSteps = [['do' : 'goto', 'target' : task.target], ['do' : taskGoal, 'timeout' : timeout, 'resource': panicRes ] ]
 			
 			
 		}
