@@ -130,39 +130,56 @@ class Trader extends ReLogoTurtle {
 		else return true
 	}
 	
+	def unregister_after_timeout(turtle) {
+		if(state.equals('regitered') && taskSteps[0].get('timeout')>0) {
+			taskSteps[0].put('timeout',taskSteps[0].get('timeout') - 1)
+		}
+		else {
+			state = 'free'
+			taskSteps[0].get('target').unregister(turtle)
+			taskSteps.remove(0)
+		}
+	}
+	
 	def continueTask() {
 		if(taskSteps.isEmpty()) {
-			finishedTask()
-		}
-		else if(taskSteps[0].get('do').equals('goto')) {
-			if(pxCor()==taskSteps[0].get('target').pxCor() && pyCor()==taskSteps[0].get('target').pyCor()) {
-				taskSteps.remove(0)
-			}else {
-				face(taskSteps[0].getAt('target'))
-				forward(velocity)
+			if(taskSteps[0].get('do').equals('goto')) {
+				if(pxCor()==taskSteps[0].get('target').pxCor() && pyCor()==taskSteps[0].get('target').pyCor()) {
+					taskSteps.remove(0)
+				}else {
+					face(taskSteps[0].get('target'))
+					forward(velocity)
+				}
+			}
+			else if(taskSteps[0].get('do').equals('buy')){
+				if(state.equals("free")) {
+					taskSteps[0].get('target').register(this, false, taskSteps[0].get('resource').equals('rice'), taskSteps[0].get('amount'), taskSteps[0].get('pricePerUnit'))
+					state = 'registered'
+				}
+				else {
+					unregister_after_timeout(this)
+				}
+			}
+			else if(taskSteps[0].get('do').equals('sell')){
+				if(state.equals("free")) {
+					taskSteps[0].get('target').register(this, true, taskSteps[0].get('resource').equals('rice'), taskSteps[0].get('amount'), taskSteps[0].get('pricePerUnit'))
+					state = 'registered'
+				}
+				else {
+					unregister_after_timeout(this)
+				}
+			}
+			else(taskSteps[0].get('do').equals('mine')){
+				if(state.equals("free")) {
+					taskSteps[0].get('target').register(this)
+					state = 'registered'
+				}
+				else {
+					unregister_after_timeout(this)
+				}
 			}
 		}
-		else if(taskSteps[0].get('do').equals('buy')){
-			if(state.equals("free")) {
-				taskSteps[0].get('target').register(it, false, taskSteps[0].get('resource').equals('rice'), taskSteps[0].get('amount'), taskSteps[0].get('pricePerUnit'))
-				state = 'registered'
-			}
-			else if(state.equals('regitered') && taskSteps[0].get('timeout')>0) {
-				taskSteps[0].put('timeout',taskSteps[0].get('timeout') - 1)
-			}
-			else {
-				state = 'free'
-				finishedTask()
-				taskSteps[0].get('target').unregister(it)
-				taskSteps.remove(0)
-			}
-		}
-		else if(taskSteps[0].get('do').equals('sell')){
-			
-		}
-		else(taskSteps[0].get('do').equals('mine')){
-			
-		}
+		finishedTask()
 	}
 	
 	
