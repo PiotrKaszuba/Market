@@ -21,7 +21,7 @@ class Market extends ReLogoTurtle {
 	int last_transaction = 0
 	int destroy_after
 	int transactions_per_step = 1
-	
+	int history_length = 20
 	
 	
 	List history = []
@@ -31,7 +31,6 @@ class Market extends ReLogoTurtle {
 		return ['water' : ['transactions': [], 'resourceLeft': 0], 'rice': ['transactions': [], 'resourceLeft': 0]]
 	}
 	def transactionPureRecord() {
-		return ['pricePerUnit' : 0, 'amount':0]
 	}
 	def meanOfResourceLft(def resource) {
 		def sum = 0
@@ -56,14 +55,14 @@ class Market extends ReLogoTurtle {
 	def discountedMeanPrice(def resource) {
 		def length = 0
 		history.each { 
-			length = length + it.get(resource).getAt('transactions').size()
+			length = length + 1 //it.get(resource).getAt('transactions').size()
 		}
 		
 		def sum = 0
 		def counter = 0
 		history.eachWithIndex { it, i ->
 			it.get(resource).get('transactions').each { t ->
-				sum = sum + t.get('amount')*(length - i)
+				sum = sum + t.get('pricePerUnit')*(length - i)
 				counter = counter + (length - i)
 			}
 		}
@@ -88,7 +87,8 @@ class Market extends ReLogoTurtle {
 			die()
 			return
 		}
-		history.add(historyPureRecord())
+		history.add(0, historyPureRecord())
+		if(history.size() > history_length) history.pop()
 		
 		def last_transactions = [true : true, false : true]
 		def transactions_current_step = 0
@@ -99,7 +99,16 @@ class Market extends ReLogoTurtle {
 				}
 		}
 		
-	
+		
+		[['rice', true], ['water', false]].forEach { product, productBool -> 
+			def resourceLeft = 0
+			registered[productBool][true].each {
+				resourceLeft+=it.amount
+			}
+			history[0][product]['resourceLeft'] = resourceLeft
+		}
+		
+		
 		last_transaction+=1
 		}
 	}
@@ -114,6 +123,13 @@ class Market extends ReLogoTurtle {
 		buyer.trader.gold += amount * max([0, buyer.pricePerUnit - seller.pricePerUnit])
 		seller.amount -= amount
 		buyer.amount -= amount
+		
+		def productString =  'rice' ?  rice : 'water'
+		def transactionRecord = transactionPureRecord()
+		transactionRecord['amount'] = amount
+		transactionRecord['pricePerUnit'] = seller.pricePerUnit
+		history[0][productString]['transactions'].add(0,transactionRecord)
+		
 	}
 	
 	def checkForTransaction(def productDict, boolean rice) {
