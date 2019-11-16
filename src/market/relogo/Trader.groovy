@@ -3,6 +3,8 @@ package market.relogo
 import static repast.simphony.relogo.Utility.*
 import static repast.simphony.relogo.UtilityG.*
 
+import javax.measure.quantity.Power
+
 import market.ReLogoTurtle
 import repast.simphony.relogo.Plural
 import repast.simphony.relogo.Stop
@@ -43,8 +45,27 @@ class Trader extends ReLogoTurtle {
 		task = null
 	}
 	
+	def m(def globalPrice, def localPrice, def localPriceCut = 7){
+		localPrice = localPrice -7
+		def GPriceDiff = Math.abs(localPrice-globalPrice) + globalPrice
+		def numerator = Math.abs(localPrice - localPriceCut - globalPrice) + globalPrice
+		def denominator = - Math.pow(globalPrice - (localPrice-localPriceCut), 2) * 5/ambition
+		
+		return numerator/denominator
+	}
 	
+	def w(def globalPrice, def localPrice) {
+		def numerator = Math.pow(globalPrice - localPrice, 2) * ambition/5
+		def denominator = localPrice
+		
+		return numerator/denominator
+	}
 	
+	def localGlobalAngerFunction(def globalPrice, def localPrice, def localPriceCut = 7){
+		def sign = Math.signum(globalPrice - localPrice)
+		// Function m takes two parameters from `globalPrice`, it is intended behavior
+		return sign * ((sign < 0) ? (w(globalPrice, localPrice) - m(globalPrice, globalPrice, localPriceCut)) : m(globalPrice, localPrice, localPriceCut))
+	}
 	
 	def panic(globalPrice) {
 		def panicRes
