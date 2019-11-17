@@ -19,6 +19,7 @@ class Trader extends ReLogoTurtle {
 	int water
 	int gold
 	int panicThreshold = 10
+	def overPanicBuyFactor = 1.5
 	int hunger
 	int thirst
 	int travelCost = 1
@@ -30,7 +31,7 @@ class Trader extends ReLogoTurtle {
 	boolean alive = true
 	String state = 'free'
 	def velocity = 5
-	
+	def goldSaving = 0
 	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition) {
 		this.id = id
 		this.rice = rice
@@ -80,12 +81,12 @@ class Trader extends ReLogoTurtle {
 		}
 		else {
 			panicRes = 'rice'
-			otherResourceRisk = (panicThreshold*1.2)/(rice+1)
+			otherResourceRisk = sqrt(max(1, 1.2*panicThreshold-water))
 			panicResConsumeAmount = rice*100+hunger
 			otherResConsumeAmount = water*100+thirst
 		}
 		
-		List<TaskAttractiveness> taskAtts = []
+		List<TaskStructure> taskAtts = []
 		
 		ask(turtles()){
 			def dist = distance(it)
@@ -94,13 +95,13 @@ class Trader extends ReLogoTurtle {
 				
 				def gain = 5 + it.r * 10
 				def attractiveness = (gain - cost - cost*otherResourceRisk)*(Math.random()/2.5 + 0.6)
-				taskAtts.add(new TaskAttractiveness(attractiveness, cost, gain, it, panicRes))
+				taskAtts.add(new TaskStructure(attractiveness, cost, gain, it, panicRes))
 			}
 			if(it instanceof Market && it.alive) {
 				def gain = it.meanAmountSoldPerStep(panicRes) + 0.2 * it.meanOfResourceLft(panicRes)
 				def priceDiff = globalPrice[panicRes]-it.discountedMeanPrice(panicRes)
 				def attractiveness = (gain - + priceDiff - cost - cost*otherResourceRisk) * (Math.random()/2.5 + 0.6)
-				taskAtts.add(new TaskAttractiveness(attractiveness, cost, gain, it, panicRes))
+				taskAtts.add(new TaskStructure(attractiveness, cost, gain, it, panicRes))
 			}
 		}
 		taskAtts = taskAtts.sort { it.attractiveness }
@@ -143,13 +144,51 @@ class Trader extends ReLogoTurtle {
 		
 			}
 	
-	def checkIfPossibleToFinish(TaskAttractiveness ta, int amount) {
-		//here
-		if(amount - ta.cost-25 <=0) {
-			return false
-		}
-		else return true
-	}
+			
+			
+			def buyPriceAndAmount(Market market, def resource, def GlobalPrice) {
+				
+				
+				//ile ma
+				//ile chcia³by kupiæ?
+				//ile w sumie mo¿e kupiæ za swoje z³oto bazujac na dMP
+				
+				//no to do progu 1.5*panicThresh za cene rynkow¹ chcemy kupiæ
+				
+				// pytanie - jak atrakcyjna jest dla nas cena rynkowa??
+				
+				// od czego zalezy atrakcyjnosc ceny na rynku?
+				
+				//1. cena globalna
+				//2. moja potrzeba - jak ma³o mam tego zasobu??/ jak du¿o mi brakuje/czy ryzyko œmierci?
+				//3. prawdopodobieñstwo zakupu w krótkim czasie - jakim? jak bardoz liczy siê krótki czas? ryzyko smierci? jakie prawdop? - analiza statystyk marketu
+				//4. ambicja -> chêæ zyskania a nie straty -> taniej!!
+				//5. "humor" -> stochastycznoœæ!!!
+				//6. ile mam z³ota / ile mogê kupic
+				
+				def goldToSpendAdditionally = max(0,gold - goldSaving)
+				def resourceAmount = resource.equals('rice') ? rice : water
+				def wantToBuy = 1.5*panicThreshold - resourceAmount
+				
+				
+				def localPrice = market.discountedMeanPrice(resource)
+				
+				
+				def howMuchWantAfford = goldToSpendAdditionally/localPrice
+				//def howMuchCanAfford = gold/localPrice
+				
+				def howMuchWantedToBuyButDontWantToSpend = wantToBuy - howMuchWantAfford
+				
+				def meanResLeft = market.meanOfResourceLft(resource)
+				def meanSoldPerStep = market.meanAmountSoldPerStep(resource)
+				
+				def price = localPrice * Math.signum(GlobalPrice-localPrice)*Math.pow(localPrice-GlobalPrice, 2)/5
+				
+				
+				
+				
+			}
+			
 	
 	def unregister_after_timeout(turtle) {
 		if(state.equals('regitered') && taskSteps[0].get('timeout')>0) {
@@ -162,7 +201,7 @@ class Trader extends ReLogoTurtle {
 		}
 	}
 	
-	def continueTask() {
+	def continueTask(def globalPrice) {
 		if(taskSteps.isEmpty()) {
 			if(taskSteps[0].get('do').equals('goto')) {
 				if(pxCor()==taskSteps[0].get('target').pxCor() && pyCor()==taskSteps[0].get('target').pyCor()) {
@@ -228,7 +267,7 @@ class Trader extends ReLogoTurtle {
 			
 			
 			if(task != null) {
-				continueTask()
+				continueTask(globalPrice)
 				return
 			}
 			
