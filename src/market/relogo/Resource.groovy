@@ -18,6 +18,7 @@ class Resource extends ReLogoTurtle {
 	def resource_renewal
 	def current_resource
 	def r = 1
+	def base_mine = 1
 	
 	def construct(def resource_type, def r_factor, def max_resource, def resource_renewal) {
 		this.type = resource_type
@@ -31,10 +32,14 @@ class Resource extends ReLogoTurtle {
 		registered.put(trader.id, 0)
 	}
 	
+	def sumOfArithmeticSequence(int n, def n1, def change) {
+		 return (n1 + (n - 1)*change/2) * n
+	}
+	
 	def unregister(Trader trader) {
 		def elapsed_time = registered.get(trader.id)
 		registered.remove(trader.id)
-		def mined = (1 + (elapsed_time - 1)*r/2) * elapsed_time
+		def mined = sumOfArithmeticSequence(elapsed_time, base_mine, r)
 		return mined
 	}
 	
