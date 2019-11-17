@@ -45,7 +45,7 @@ class StandardBehaviour {
 		cost = cost + miningCost
 		def attractiveness = (gain - cost)*randomFactor()
 		
-		taskAtts.add(new TaskStructure(attractiveness, cost, gain, [mine], ['do': 'mine', 'timeout':timeout, 'resource' : needRes], [needRes], [true]))
+		taskAtts.add(new TaskStructure(attractiveness, cost, gain, [mine], ['do': 'mine', 'timeout':timeout, 'resource' : needRes, 'target':mine], [needRes], [true]))
 	}
 	
 	
@@ -58,18 +58,18 @@ class StandardBehaviour {
 		
 		if(needResAmount < turtle.panicThreshold) {
 			for(int i =1; i<=wantToBuy; i++) {
-				def willBuy = Math.min(i, expectedBuy)
+				def willBuy = Math.min(i, Math.floor(expectedBuy).toInteger()).toInteger()
 				def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/2 : 0)
 				def attractiveness = (gain - cost) * randomFactor()
-				taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], ['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : i], [needRes], [false]))
+				taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : i, 'target':market]], [needRes], [false]))
 			}
 			
 		}
 		else {
-			def willBuy = Math.min(wantToBuy, expectedBuy)
+			def willBuy = Math.min(wantToBuy, Math.floor(expectedBuy).toInteger()).toInteger()
 			def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/2 : 0)
 			def attractiveness = (gain - cost) * randomFactor()
-			taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : wantToBuy] ], [needRes], [false]))
+			taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : wantToBuy, 'target':market] ], [needRes], [false]))
 		}
 		
 		
@@ -82,10 +82,10 @@ class StandardBehaviour {
 		def expectedSell = timeout * (market.meanAmountSoldPerStep(sellRes) - resourceLeftFactor * market.meanOfResourceLft(sellRes))
 		
 		def priceDiff = globalPrice[sellRes]-market.discountedMeanPrice(sellRes)
-		def willSell = Math.min(wantToSell, expectedSell)
+		def willSell = Math.min( Math.ceil(wantToSell), Math.ceil(expectedSell)).toInteger()
 		def gain = willSell * priceDiff
 		def attractiveness = (gain - cost) * randomFactor()
-		taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'sell', 'timeout' : timeout, 'resource' : sellRes, 'wantGetGoldAmount' : wantToSell] ], [sellRes], [false]))
+		taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'sell', 'timeout' : timeout, 'resource' : sellRes, 'wantGetGoldAmount' : wantToSell, 'target':market] ], ['gold'], [false]))
 		
 		
 		
@@ -97,20 +97,27 @@ class StandardBehaviour {
 //		def otherResource = 'rice' 
 //	}
 	
-	def mineAcceptCondition(Resource mine, def resource) {
+	def mineAcceptCondition(ReLogoTurtle mine, def resource) {
 		return mine instanceof Resource && mine.type.equals(resource) && turtle.resourceMiningAbility[resource]
 	}
 	
-	def marketAcceptCondition(Market market) {
+	def marketAcceptCondition(ReLogoTurtle market) {
 		return market instanceof Market && market.alive
 	}
 	
 	
 	
 	
-	def invokeTask(def label, def resource) {
-		TaskStructure taskStructure = TaskStructure()
-		return label(resource, taskStructure)
+	def invokeTask() {
+		TaskStructure taskStructure = new TaskStructure()
+		def label
+		if(this.rootNeed.equals('rice'))
+			label = this.&needRiceOrWater
+		else if(this.rootNeed.equals('water'))
+			label = this.&needRiceOrWater
+		else label = this.&needGold
+		//taskStructure.needSoFar.add(rootNeed)
+		return label(rootNeed, taskStructure, rootNeedAmount)
 	}
 	
 	def needGold(def resource, TaskStructure taskStructure, def amountNeed) {
@@ -130,7 +137,7 @@ class StandardBehaviour {
 		def forSale = ['rice', 'water'].toSet()-taskStructure.needSoFar.toSet()
 		
 		turtle.ask(turtle.turtles()){
-			def cost = startLocationTurtle.distance(it) * (1+ startLocationTurtle.travelCost) / 100
+			def cost = startLocationTurtle.distance(it) * (1+ turtle.travelCost) / 100
 			cost = cost*resourceUsageFactors['rice'] + cost*resourceUsageFactors['water']
 			
 			//overall - choose if it is better to
@@ -153,8 +160,10 @@ class StandardBehaviour {
 				
 			if(marketAcceptCondition(it)) {
 				forSale.each { resourceToSell ->
+					if (! taskStructure.needSoFar.contains(resourceToSell)) {
 					def resourceAmount = resourceToSell.equals('rice') ? turtle.rice : turtle.water
 					marketAppendAttractivenessSell(tasks, it, cost, resourceToSell, resourceAmount, amountNeed)
+					}
 				}
 			}
 			
@@ -210,7 +219,7 @@ class StandardBehaviour {
 		
 		def resourceAmount = resource.equals('rice') ? turtle.rice : turtle.water
 		turtle.ask(turtle.turtles()){
-			def cost = startLocationTurtle.distance(it) * (1+ startLocationTurtle.travelCost) / 100
+			def cost = startLocationTurtle.distance(it) * (1+ turtle.travelCost) / 100
 			cost = cost*resourceUsageFactors['rice'] + cost*resourceUsageFactors['water']
 			
 			//overall - choose if it is better to
@@ -284,7 +293,7 @@ class StandardBehaviour {
 	def evaluateBuyTask(TaskStructure task) {
 		task.already_evaluated[0] = true
 		def goldCost = task.targets[0].discountedMeanPrice(task.needSoFar[0]) * task.actions[0]['amount']
-		def canSpendGold = needResAmount < turtle.panicThreshold ? turtle.gold : turtle.gold - turtle.goldSaving
+		def canSpendGold = (task.actions[0]['resource'].equals('rice') ? turtle.rice : turtle.water) < turtle.panicThreshold ? turtle.gold : turtle.gold - turtle.goldSaving
 		if( canSpendGold >= goldCost)
 			return task
 		else {
@@ -306,6 +315,9 @@ class StandardBehaviour {
 			return task
 		else {
 			def subTask = needRiceOrWater(task.actions[0]['resource'], task, (resourceCost-resourceHave).toInteger())
+			if(subTask==null)
+				return task
+			
 			return task.merge(subTask)
 			
 		}

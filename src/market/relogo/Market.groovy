@@ -21,11 +21,23 @@ class Market extends ReLogoTurtle {
 	int last_transaction = 0
 	int destroy_after
 	int transactions_per_step = 1
-	int history_length = 20
-	
+	int history_length = 100
+	def meanOfResourceLftVar = ['rice' : null, 'water' : null]
+	def meanAmountSoldPerStepVar= ['rice' : null, 'water' : null]
+	def discountedMeanPriceVar= ['rice' : null, 'water' : null]
 	
 	List history = []
 	
+	
+	def convertTrueFalse(boolean b) {
+		return b ? 1 : 0
+	}
+	
+	def resetStatistics() {
+		meanOfResourceLftVar = ['rice' : null, 'water' : null]
+		meanAmountSoldPerStepVar= ['rice' : null, 'water' : null]
+		discountedMeanPriceVar= ['rice' : null, 'water' : null]
+	}
 	
 	def getHistoryPureRecord() {
 		return ['water' : ['transactions': [], 'resourceLeft': 0], 'rice': ['transactions': [], 'resourceLeft': 0]]
@@ -33,15 +45,22 @@ class Market extends ReLogoTurtle {
 	def transactionPureRecord() {
 	}
 	def meanOfResourceLft(def resource) {
+		if(meanOfResourceLftVar[resource] != null)
+			return meanOfResourceLftVar[resource]
+		
+		
 		def sum = 0
 		def counter = 0
 		history.each {
 			sum = sum + it.get(resource).get('resourceLeft')
 			counter = counter + 1
 		}
-		return sum/counter
+		meanOfResourceLftVar[resource] = counter!=0 ? sum/counter  : 0
+		return meanOfResourceLftVar[resource]
 	}
 	def meanAmountSoldPerStep(def resource) {
+		if(meanAmountSoldPerStepVar[resource] != null)
+			return meanAmountSoldPerStepVar[resource]
 		def sum = 0
 		def counter = 0
 		history.each {
@@ -50,9 +69,12 @@ class Market extends ReLogoTurtle {
 				counter = counter + 1
 			}
 		}
-		return sum/counter
+		meanAmountSoldPerStepVar[resource] = counter!=0 ? sum/counter  : 0
+		return meanAmountSoldPerStepVar[resource]
 	}
 	def discountedMeanPrice(def resource) {
+		if(discountedMeanPriceVar[resource] != null)
+			return discountedMeanPriceVar[resource]
 		def length = 0
 		history.each { 
 			length = length + 1 //it.get(resource).getAt('transactions').size()
@@ -66,17 +88,18 @@ class Market extends ReLogoTurtle {
 				counter = counter + (length - i)
 			}
 		}
-		return sum/counter
+		discountedMeanPriceVar[resource] = counter!=0 ? sum/counter  : UserObserver.globalPrice[resource]
+		return discountedMeanPriceVar[resource]
 	}
 	
 	
 	
 	// 'water' : 'sell', 'buy'
-	Map registered = [false : [true : [], false : []], true: [true : [], false : []]]
+	def registered = [0 : [1 : [], 0 : []], 1: [1 : [], 0 : []]]
 	
-	def step() {
+	def step(def globalPrice) {
 		if(alive) {
-		
+		resetStatistics()
 		if(last_transaction > destroy_after) {
 			alive = false
 			println('market dead')
@@ -87,13 +110,13 @@ class Market extends ReLogoTurtle {
 			die()
 			return
 		}
-		history.add(0, historyPureRecord())
+		history.add(0, getHistoryPureRecord())
 		if(history.size() > history_length) history.pop()
 		
 		def last_transactions = [true : true, false : true]
 		def transactions_current_step = 0
 		while((last_transactions[true] || last_transactions[false]) && transactions_current_step < transactions_per_step) {
-			[true, false].each { v-> 
+			[1, 0].each { v-> 
 				last_transactions[v] = checkForTransaction(registered[v], v)
 				if(last_transactions[v] == true) transactions_current_step +=1
 				}
@@ -102,8 +125,9 @@ class Market extends ReLogoTurtle {
 		
 		[['rice', true], ['water', false]].forEach { product, productBool -> 
 			def resourceLeft = 0
-			registered[productBool][true].each {
-				resourceLeft+=it.amount
+			
+			registered[convertTrueFalse( productBool )][convertTrueFalse( true )].each { v->
+				resourceLeft+=v.amount
 			}
 			history[0][product]['resourceLeft'] = resourceLeft
 		}
@@ -129,7 +153,7 @@ class Market extends ReLogoTurtle {
 		transactionRecord['amount'] = amount
 		transactionRecord['pricePerUnit'] = seller.pricePerUnit
 		history[0][productString]['transactions'].add(0,transactionRecord)
-		
+		println("Transaction!!")
 	}
 	
 	def checkForTransaction(def productDict, boolean rice) {
@@ -143,9 +167,10 @@ class Market extends ReLogoTurtle {
 		
 		doTransaction(rice, tInfo, buyer)
 		[tInfo, buyer].each { a -> if (a.amount == 0) { 
-			registered[a.rice][a.sell].removeIf{v-> v.trader.id == a.trader.id } 
+			registered[convertTrueFalse(a.rice)][convertTrueFalse(a.sell )].removeIf{v-> v.trader.id == a.trader.id } 
 			a.trader.finishedTask()
-			}}
+			}
+		}
 		return true
 	}
 	
@@ -173,7 +198,8 @@ class Market extends ReLogoTurtle {
 		return true
 	}
 	
-	def register(Trader trader, boolean sell, boolean rice, int amount, int pricePerUnit) {
+	def register(Trader trader, boolean sell, boolean rice, int amount, def pricePerUnit) {
+		println("Register!!")
 		if(!alive) return false
 		if(sell) {
 			if(rice) {
@@ -189,7 +215,8 @@ class Market extends ReLogoTurtle {
 			if(trader.gold < amount * pricePerUnit) return false
 			trader.gold -= amount * pricePerUnit
 		}
-		registered[rice][sell].add(new TraderInfo(trader, sell, rice, amount, pricePerUnit))
+		registered[convertTrueFalse( rice)][convertTrueFalse( sell)].add(new TraderInfo(trader, sell, rice, amount, pricePerUnit))
+		println("Register!!")
 		return true
 	}
 	

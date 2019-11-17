@@ -48,6 +48,7 @@ class Resource extends ReLogoTurtle {
 			def increment = current_resource/max_resource
 			time = time + increment
 			current_resource = current_resource - increment
+			trader.mine()
 		}
 		def delta_resource = max_resource - current_resource
 		if(delta_resource>0 && delta_resource>resource_renewal) {

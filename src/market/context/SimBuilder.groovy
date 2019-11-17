@@ -19,7 +19,8 @@ import market.relogo.UserTurtle;
 import market.relogo.UserGlobalsAndPanelFactory;
 
 public class SimBuilder implements ContextBuilder {
-	
+	public static int maxPxcor = 64
+	public static int maxPycor = 64
 	public Context build(Context context) {
 	
 		if (RunEnvironment.instance.isBatch()){
@@ -32,9 +33,9 @@ public class SimBuilder implements ContextBuilder {
 		
 		// NOTE: minPxcor and minPycor must be <= 0
 		int minPxcor = p.getValue("default_observer_minPxcor");
-		int maxPxcor = p.getValue("default_observer_maxPxcor");
+//		int maxPxcor = p.getValue("default_observer_maxPxcor");
 		int minPycor = p.getValue("default_observer_minPycor");
-		int maxPycor = p.getValue("default_observer_maxPycor");
+//		int maxPycor = p.getValue("default_observer_maxPycor");
 		RLWorldDimensions rLWorldDimensions = new RLWorldDimensions(0, maxPxcor, 0, maxPycor, new repast.simphony.space.continuous.BouncyBorders());
 		
 		LinkFactory lf = new LinkFactory(UserLink);

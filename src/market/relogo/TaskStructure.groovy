@@ -11,13 +11,14 @@ class TaskStructure {
 	List needSoFar
 	List already_evaluated
 	
-	def TaskStructure(float attractiveness = 0, float cost = 0, float gain = 0, List<ReLogoTurtle> targets = [], List actions = [], List needSoFar = [], List already_evaluated = []) {
+	def TaskStructure(def attractiveness = 0, def cost = 0, def gain = 0, List<ReLogoTurtle> targets = [], List actions = [], List needSoFar = [], List already_evaluated = []) {
 		this.cost = cost
 		this.gain = gain
 		this.targets = targets
 		this.actions = actions
 		this.needSoFar = needSoFar
 		this.already_evaluated = already_evaluated
+		
 	}
 	
 	def merge(TaskStructure subTask) {
@@ -29,6 +30,16 @@ class TaskStructure {
 		this.already_evaluated.addAll(subTask.already_evaluated)
 		this.attractiveness = this.gain - this.cost
 		return this
+	}
+	
+	def toTaskSteps() {
+		
+		List taskSteps = []
+		for(int i =0;i< this.actions.size(); i++ ) {
+			taskSteps.add(['do' : 'goto', 'target' : targets[i] ]);
+			taskSteps.add(actions[i])
+		}
+		return taskSteps
 	}
 	
 }
