@@ -17,10 +17,11 @@ class Resource extends ReLogoTurtle {
 	def max_resource
 	def resource_renewal
 	def current_resource
-	def r = 1
+	def r = 0
 	def base_mine = 1
-	
-	def construct(def resource_type, def r_factor, def max_resource, def resource_renewal) {
+	int id
+	def construct(int id, def resource_type, def r_factor=0, def max_resource=100, def resource_renewal=1) {
+		this.id = id
 		this.type = resource_type
 		this.r = r_factor
 		this.max_resource = max_resource
@@ -29,26 +30,50 @@ class Resource extends ReLogoTurtle {
 	}
 	
 	def register(Trader trader) {
-		registered.put(trader.id, 0)
+		registered.put(trader.id, [trader, 0])
 	}
 	
-	def sumOfArithmeticSequence(int n, def n1, def change) {
+	def sumOfArithmeticSequence(def n, def n1, def change) {
 		 return (n1 + (n - 1)*change/2) * n
 	}
 	
 	def unregister(Trader trader) {
-		def elapsed_time = registered.get(trader.id)
+		def record = registered.get(trader.id)
+		def elapsed_time = record[1]
 		registered.remove(trader.id)
 		def mined = sumOfArithmeticSequence(elapsed_time, base_mine, r)
-		return mined
+		mined = Math.floor(mined).toInteger()
+		increaseTraderRes(trader, mined)
+	}
+	
+	def increaseTraderRes(Trader trader, def mined) {
+		if(type.equals('gold')) trader.gold += mined
+		if(type.equals('rice')) trader.rice += mined
+		if(type.equals('water')) trader.water += mined
+		
+		println("Trader " + trader.id +" mined " + mined + " " + type +".")
 	}
 	
 	def step() {
-		registered.each { trader, time ->
+		
+		List toDel = []
+		registered.each { traderId, record ->
+			
+			def time = record[1]
+			def trader = record[0]
+			if(trader.alive) {
 			def increment = current_resource/max_resource
 			time = time + increment
+			registered[traderId][1] = time
 			current_resource = current_resource - increment
 			trader.mine()
+			}
+			else {
+				toDel.add(trader)
+			}
+		}
+		toDel.each {
+			unregister(it)
 		}
 		def delta_resource = max_resource - current_resource
 		if(delta_resource>0 && delta_resource>resource_renewal) {
@@ -56,6 +81,7 @@ class Resource extends ReLogoTurtle {
 		} else if (delta_resource>0 && delta_resource<resource_renewal) {
 			current_resource = max_resource
 		}
+		println("Current " + this.type+" in mine: " + current_resource)
 		
 	}
 	

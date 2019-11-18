@@ -17,21 +17,25 @@ class Trader extends ReLogoTurtle {
 	int id
 	int rice
 	int water
-	int gold
+	def gold
+	def costAlready = 0
+	TaskStructure taskStr = null
 	int panicThreshold = 10
 	def overPanicBuyFactor = 1.5
 	int hunger
 	int thirst
-	int travelCost = 1
+	int travelCost = 2
 	int needThreshold = 25
 	def task = null
 	List taskSteps = null
-	def miningFatigue = 10
+	def miningFatigue = 8
 	int ambition
 	boolean alive = true
+	def traderInfo = null
 	String state = 'free'
-	def velocity = 1
+	def velocity = 1.25
 	def goldSaving = 0
+	def resourceMiningAbility = ['water':true,'rice':true, 'gold':true]
 	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition) {
 		this.id = id
 		this.rice = rice
@@ -42,9 +46,17 @@ class Trader extends ReLogoTurtle {
 		this.ambition = ambition
 	}
 	
+	def finishedStep() {
+		taskSteps.remove(0)
+		state = 'free'
+	}
+	
 	def finishedTask() {
 		task = null
 		taskSteps = null
+		state = 'free'
+		costAlready = 0
+		taskStr = null
 	}
 	
 	def m(def globalPrice, def localPrice, def localPriceCut = 7){
@@ -65,6 +77,8 @@ class Trader extends ReLogoTurtle {
 	
 	def localGlobalAngerFunction(def globalPrice, def localPrice, def localPriceCut = 7){
 		def sign = Math.signum(globalPrice - localPrice)
+		if(sign==0) sign = 1
+		
 		// Function m takes two parameters from `globalPrice`, it is intended behavior
 		return sign * ((sign < 0) ? (w(globalPrice, localPrice) - m(globalPrice, globalPrice, localPriceCut)) : m(globalPrice, localPrice, localPriceCut))
 	}
@@ -97,21 +111,39 @@ class Trader extends ReLogoTurtle {
 		
 		
 		StandardBehaviour sb = new StandardBehaviour(this, panicRes, needAmount, globalPrice, resourceUsageFactors)
+		TaskStructure ts =  sb.invokeTask()
 		
-		this.taskSteps =  sb.invokeTask().toTaskSteps()
+		if(ts!= null) {
+			costAlready = 0
+			this.taskSteps = ts.toTaskSteps()
+			this.taskStr = ts
+		}
+		else 
+			this.taskSteps = ts
 		this.task=taskSteps
 			
 			
 	}
-			
+	def trace() {
+		if(id != -1) return
+		println("------------------------------")
+		println("Ambition: " + ambition)
+		println("X: " + xcor +", Y: " + ycor)
+		println("Hunger: " + hunger +", Thirst: " + thirst)
+		println("Rice: " + rice +", Water: " + water + ", Gold: " + gold)
+		println("Task Steps: " + taskSteps != null ? taskSteps : "null")
+		println("Task initial cost: " + (taskStr? taskStr.cost : "-")+ "; initial amounts: " + (taskStr ? taskStr.initialAmounts : []))
+		println("Cost already: " + this.costAlready)
+		println("------------------------------")
+	}
 	def sellPriceAndAmount(Market market, def resource, def globalPrice, def wantToGainGold) {
 		def resourceAmount = resource.equals('rice') ? rice : water
 		def localPrice = market.discountedMeanPrice(resource)
-		def resourceToSpend = max(0, resourceAmount - panicThreshold)
+		def resourceToSpend = Math.max(0, resourceAmount - panicThreshold).toInteger()
 		
 		def howMuchShouldSell = wantToGainGold/localPrice
 		
-		def howMuchWillSell = min(Math.ceil(howMuchShouldSell), Math.ceil((resourceToSpend + howMuchShouldSell/3) * (resourceAmount-1)/panicThreshold  ) )
+		def howMuchWillSell = Math.min(Math.ceil(howMuchShouldSell), Math.ceil((resourceToSpend + howMuchShouldSell/3) * (resourceAmount-1)/panicThreshold  ) ).toInteger()
 		
 		def howMuchWantAfford = resourceToSpend*localPrice
 		//def howMuchCanAfford = gold/localPrice
@@ -121,11 +153,15 @@ class Trader extends ReLogoTurtle {
 		def meanResLeft = market.meanOfResourceLft(resource)
 		def meanSoldPerStep = market.meanAmountSoldPerStep(resource)
 		
+		def goldFactor = Math.log((resourceAmount-panicThreshold/2)/panicThreshold +1) * Math.log(gold/10+1) * 2/ambition
+		
+		
+		
 		def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
-		
-		def price = (localPrice - ambitionBasedAnger + meanSoldPerStep - meanResLeft/5 + howMuchWantedToBuyButDontWantToSpend/12  )*(Math.random()/4+0.875)
-		
-		def ret = [price, howMuchWillSell]
+		//println(ambitionBasedAnger)
+		def price = ((localPrice - ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - goldFactor)*(Math.random()/4+0.85))
+		price = price >= 1 ? price : 1/(2-price)
+		def ret = [price, Math.max(1,howMuchWillSell)]
 		return ret
 		
 	}
@@ -168,44 +204,55 @@ class Trader extends ReLogoTurtle {
 				
 				def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
 				
-				
-				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep - meanResLeft/5 - howMuchWantedToBuyButDontWantToSpend/8 + panicThreshold/(resourceAmount+0.2*panicThreshold) -1  )*(Math.random()/4+0.875)
-				def ret = [price, wantToBuy]
+				def goldFactor = Math.log((resourceAmount-panicThreshold/2)/panicThreshold +1) * Math.log(gold/10+1) * 2/ambition
+				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - howMuchWantedToBuyButDontWantToSpend/8 + goldFactor + panicThreshold/(resourceAmount+0.1*panicThreshold) -1  )*(Math.random()/4+0.9)
+				price = price >= 1 ? price : 1/(2-price)
+				def ret = [price, Math.max(1, Math.min(wantToBuy, Math.floor(gold/price)))]
 				return ret
 			}
 			
 	
 	def unregister_after_timeout(turtle) {
-		if(state.equals('regitered') && taskSteps[0].get('timeout')>0) {
+		if(state.equals('registered') && taskSteps[0].get('timeout')>0) {
 			taskSteps[0].put('timeout',taskSteps[0].get('timeout') - 1)
+			//println("Timeout! " + taskSteps[0].get('timeout'))
 		}
 		else {
 			state = 'free'
 			taskSteps[0].get('target').unregister(turtle)
 			taskSteps.remove(0)
+			finishedTask()
+			//println("Unregister")
 		}
 	}
 	
 	def continueTask(def globalPrice) {
 		if(! taskSteps.isEmpty()) {
 			if(taskSteps[0].get('do').equals('goto')) {
-				if(abs(xcor-taskSteps[0].get('target').xcor) <= 1 && abs(ycor-taskSteps[0].get('target').ycor) <=1) {
+				if(abs(xcor-taskSteps[0].get('target').xcor) <= 1.5 && abs(ycor-taskSteps[0].get('target').ycor) <=1.5) {
 					taskSteps.remove(0)
 				}else {
 					face(taskSteps[0].get('target'))
 					forward(velocity)
 					thirst -= travelCost
 					hunger -= travelCost
+					costAlready += travelCost
 				}
 			}
 			else if(taskSteps[0].get('do').equals('buy')){
 				if(state.equals("free")) {
 					def priceAmount = buyPriceAndAmount(taskSteps[0]['target'], taskSteps[0]['resource'], globalPrice[taskSteps[0]['resource']], taskSteps[0]['amount'])
 					def price = priceAmount[0]
-					//def amount = priceAmount[1]
+					def amount = priceAmount[1]
 					
-					taskSteps[0].get('target').register(this, false, taskSteps[0].get('resource').equals('rice'), taskSteps[0].get('amount'), price)
-					state = 'registered'
+					def ret = taskSteps[0].get('target').register(this, false, taskSteps[0].get('resource').equals('rice'), amount.toInteger(), price)
+					
+					if(ret) {
+						state = 'registered'
+					
+					}else
+						finishedTask()
+
 				}
 				else {
 					unregister_after_timeout(this)
@@ -216,14 +263,22 @@ class Trader extends ReLogoTurtle {
 					def priceAmount = sellPriceAndAmount(taskSteps[0]['target'], taskSteps[0]['resource'], globalPrice[taskSteps[0]['resource']], taskSteps[0]['wantGetGoldAmount'])
 					def price = priceAmount[0]
 					def amount = priceAmount[1]
-					taskSteps[0].get('target').register(this, true, taskSteps[0].get('resource').equals('rice'), amount, price)
-					state = 'registered'
+					def ret = taskSteps[0].get('target').register(this, true, taskSteps[0].get('resource').equals('rice'), amount, price)
+					
+					if(ret) {
+						state = 'registered'
+					
+					}
+					else
+						finishedTask()
+					
+					
 				}
 				else {
 					unregister_after_timeout(this)
 				}
 			}
-			else(taskSteps[0].get('do').equals('mine')){
+			else if(taskSteps[0].get('do').equals('mine')){
 				if(state.equals("free")) {
 					taskSteps[0].get('target').register(this)
 					state = 'registered'
@@ -233,58 +288,95 @@ class Trader extends ReLogoTurtle {
 				}
 			}
 		}
-		if (taskSteps.isEmpty()) finishedTask()
+		if (taskSteps != null && taskSteps.isEmpty()) finishedTask()
 	}
 	
 	def mine() {
 		thirst -= miningFatigue
 		hunger -= miningFatigue
+		costAlready += miningFatigue
 	}
+	
+	def eat() {
+		if(hunger<=needThreshold && rice >0) {
+			rice -=1
+			hunger+=100
+			//println("rice eat")
+		}
+		if(thirst<=needThreshold && water >0) {
+			water -=1
+			thirst+=100
+			//println("water drink")
+		}
+	}
+	
+	def deathCheck() {
+		if(hunger <=0 || thirst <= 0) {
+			if(state=='registered' && taskSteps != null) {
+				taskSteps[0]['target'].unregister(this)
+				state = 'free'
+				eat()
+				deathCheck()
+			}
+			alive = false
+			println("+++++++++++++++++")
+			println("Trader DEAD;  id: " + id + ", rice: " + rice + ", water: " + water + ", gold: " + gold)
+			println("Task Steps: " + taskSteps)
+			println("State: " + state)
+			println("+++++++++++++++++")
+			die()
+			return true
+		}
+		return false
+	}
+	
 	def step(def globalPrice) {
 		if(alive) {
-			if(hunger <=0 || thirst <= 0) {
-				alive = false
-				println("trader dead")
-				die()
-				return
+			if(taskStr!=null && costAlready > taskStr.cost*100)
+			{
+				//println("-----------------" + costAlready+"--------------BAAAAAD_________________" + taskStr.cost)
 			}
-			hunger -=1
-			thirst -=1
-			
-			if(hunger<=needThreshold && rice >0) {
-				rice -=1
-				hunger+=100
-				println("rice eat")
+			if(deathCheck()) return
+			else {
+				hunger -=1
+				thirst -=1
+				costAlready+=1
+				
+				eat()
+				
+				
+				if(task != null) {
+					continueTask(globalPrice)
+					
+				}else {
+					if(water<panicThreshold || rice<panicThreshold) {
+						panic(globalPrice)
+						
+					}
+					else
+					{
+//						left(random(90))
+//						right(random(90))
+//						forward(random(velocity))
+//						thirst -= travelCost
+//						hunger -= travelCost
+					}
+				}
+				
+				
+				
+				
+				
+				
+				
 			}
-			if(thirst<=needThreshold && water >0) {
-				water -=1
-				thirst+=100
-				println("water drink")
-			}
 			
-			
-			if(task != null) {
-				continueTask(globalPrice)
-				return
-			}
-			
-			
-			
-			if(water<panicThreshold || rice<panicThreshold) {
-				panic(globalPrice)
-				return
-			}
-			
-			left(random(90))
-			right(random(90))
-			forward(random(velocity))
-			thirst -= travelCost
-			hunger -= travelCost
 			
 			
 			
 			
 		}
+		trace()
 		
 	}
 	

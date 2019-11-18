@@ -19,8 +19,8 @@ import market.relogo.UserTurtle;
 import market.relogo.UserGlobalsAndPanelFactory;
 
 public class SimBuilder implements ContextBuilder {
-	public static int maxPxcor = 64
-	public static int maxPycor = 64
+	public static int maxPxcor = 100
+	public static int maxPycor = 100
 	public Context build(Context context) {
 	
 		if (RunEnvironment.instance.isBatch()){

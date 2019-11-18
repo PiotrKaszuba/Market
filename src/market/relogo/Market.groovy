@@ -13,15 +13,18 @@ import repast.simphony.relogo.schedule.Setup
 
 class Market extends ReLogoTurtle {
 
-	def construct(int destroy_after, int transactions_per_step) {
+	def construct(int id, int destroy_after, int transactions_per_step) {
+		this.id = id
 		this.destroy_after = destroy_after
 		this.transactions_per_step = transactions_per_step
 	}
+	int id
+	int total_transactions = 0
 	boolean alive = true
 	int last_transaction = 0
 	int destroy_after
 	int transactions_per_step = 1
-	int history_length = 100
+	int history_length = 250
 	def meanOfResourceLftVar = ['rice' : null, 'water' : null]
 	def meanAmountSoldPerStepVar= ['rice' : null, 'water' : null]
 	def discountedMeanPriceVar= ['rice' : null, 'water' : null]
@@ -43,6 +46,7 @@ class Market extends ReLogoTurtle {
 		return ['water' : ['transactions': [], 'resourceLeft': 0], 'rice': ['transactions': [], 'resourceLeft': 0]]
 	}
 	def transactionPureRecord() {
+		return ['amount':0, 'pricePerUnit':0]
 	}
 	def meanOfResourceLft(def resource) {
 		if(meanOfResourceLftVar[resource] != null)
@@ -102,9 +106,11 @@ class Market extends ReLogoTurtle {
 		resetStatistics()
 		if(last_transaction > destroy_after) {
 			alive = false
-			println('market dead')
+			println('Market dead, id - ' + this.id + ", transactions: " + this.total_transactions)
 			
-			registered.each { key,value -> value.each { k,v -> v.each { el -> 
+			registered.each { key,value -> value.each { k,v -> 
+				def clon = v.clone()
+				clon.each { el -> 
 				unregister(el.trader)
 				}}}
 			die()
@@ -113,9 +119,9 @@ class Market extends ReLogoTurtle {
 		history.add(0, getHistoryPureRecord())
 		if(history.size() > history_length) history.pop()
 		
-		def last_transactions = [true : true, false : true]
+		def last_transactions = [1 : true, 0 : true]
 		def transactions_current_step = 0
-		while((last_transactions[true] || last_transactions[false]) && transactions_current_step < transactions_per_step) {
+		while((last_transactions[1] || last_transactions[0]) && transactions_current_step < transactions_per_step) {
 			[1, 0].each { v-> 
 				last_transactions[v] = checkForTransaction(registered[v], v)
 				if(last_transactions[v] == true) transactions_current_step +=1
@@ -136,39 +142,60 @@ class Market extends ReLogoTurtle {
 		last_transaction+=1
 		}
 	}
-	def doTransaction(boolean rice, TraderInfo seller, TraderInfo buyer) {
-		def amount = min([seller.amount, buyer.amount])
+	def doTransaction(int rice, TraderInfo seller, TraderInfo buyer) {
+		def amount = Math.min(seller.amount, buyer.amount)
 		if (rice){
 			buyer.trader.rice += amount
 		}else {
 			buyer.trader.water += amount
 		}
 		seller.trader.gold += amount * seller.pricePerUnit
-		buyer.trader.gold += amount * max([0, buyer.pricePerUnit - seller.pricePerUnit])
+		buyer.trader.gold += amount * Math.max(0, buyer.pricePerUnit - seller.pricePerUnit)
 		seller.amount -= amount
 		buyer.amount -= amount
 		
-		def productString =  'rice' ?  rice : 'water'
+		def productString =  rice ? 'rice' : 'water'
 		def transactionRecord = transactionPureRecord()
 		transactionRecord['amount'] = amount
 		transactionRecord['pricePerUnit'] = seller.pricePerUnit
 		history[0][productString]['transactions'].add(0,transactionRecord)
-		println("Transaction!!")
+		this.total_transactions +=1
+		this.destroy_after += 12
+		this.last_transaction = 0
+		UserObserver.transactions +=1
+		println("------------------")
+		println("Transaction!! Market " + this.id +", X: " +xcor +", Y: " +ycor)
+		println("Sold " + amount +" " + productString + " for " + seller.pricePerUnit)
+		println("Seller: " + "offered: " + seller.pricePerUnit +"; id: " + seller.trader.id + ", rice: " + seller.trader.rice + ", water: " + seller.trader.water + ", gold: " + seller.trader.gold)
+		println("Buyer: " + "offered: " + buyer.pricePerUnit +"; id: " + buyer.trader.id + ", rice: " + buyer.trader.rice + ", water: " + buyer.trader.water + ", gold: " + buyer.trader.gold)
+		println("------------------")
 	}
 	
-	def checkForTransaction(def productDict, boolean rice) {
-		List sellList = productDict[true]
-		List buyList = productDict[false]
+	def checkForTransaction(def productDict, int rice) {
+		List sellList = productDict[1]
+		
+		List buyList = productDict[0]
+		if(sellList.empty || buyList.empty) {
+//			if(!sellList.empty || ! buyList.empty) {
+//				println("One of lists empty! Market " + this.id)
+//			}
+			return false
+		}
 		TraderInfo tInfo =  sellList[0]
-		List potentialBuyers = buyList.findAll { it.pricePerUnit >= tInfo.pricePerUnit} as List
-		if(potentialBuyers.isEmpty()) return false
+		List potentialBuyers = buyList.findAll { v -> v.pricePerUnit >= tInfo.pricePerUnit} as List
+		
+		if(potentialBuyers.isEmpty()) {
+			//println("No price match! Market " + this.id)
+			return false
+			
+		}
 		Random rnd = new Random()
 		TraderInfo buyer = potentialBuyers[rnd.nextInt(potentialBuyers.size)]
 		
 		doTransaction(rice, tInfo, buyer)
 		[tInfo, buyer].each { a -> if (a.amount == 0) { 
 			registered[convertTrueFalse(a.rice)][convertTrueFalse(a.sell )].removeIf{v-> v.trader.id == a.trader.id } 
-			a.trader.finishedTask()
+			a.trader.finishedStep()
 			}
 		}
 		return true
@@ -177,13 +204,17 @@ class Market extends ReLogoTurtle {
 	
 	
 	def unregister(Trader trader) {
-		TraderInfo ti
+		TraderInfo ti = trader.traderInfo
+		
 		registered.each { key, value -> value.each { k,v -> 
-			 def col = v.findAll{ it.trader.id == trader.id }
-			 if (!col.empty) ti = col[0]
-			 v.removeIf {it.trader.id == trader.id }
+			 //def col = v.findAll{ it.trader.id == trader.id }
+			 //if (!col.empty) ti = col[0]
+			 
+			v.removeIf {it.trader.id == trader.id }
 			 
 			  } }
+		trader.traderInfo = null
+		if(ti==null) return false
 		if(ti.sell){
 			if(ti.rice) {
 				trader.rice += ti.amount
@@ -195,12 +226,18 @@ class Market extends ReLogoTurtle {
 		else {
 			trader.gold += ti.amount * ti.pricePerUnit
 		}
+		trader.traderInfo = null
 		return true
 	}
 	
 	def register(Trader trader, boolean sell, boolean rice, int amount, def pricePerUnit) {
-		println("Register!!")
-		if(!alive) return false
+		
+		if(!alive) {
+			return false
+		}
+		if(amount <= 0) {
+			return false
+		}
 		if(sell) {
 			if(rice) {
 				if(trader.rice < amount) return false
@@ -212,11 +249,14 @@ class Market extends ReLogoTurtle {
 			}
 		}
 		else {
+			
 			if(trader.gold < amount * pricePerUnit) return false
 			trader.gold -= amount * pricePerUnit
 		}
-		registered[convertTrueFalse( rice)][convertTrueFalse( sell)].add(new TraderInfo(trader, sell, rice, amount, pricePerUnit))
-		println("Register!!")
+		TraderInfo ti = new TraderInfo(trader, sell, rice, amount, pricePerUnit)
+		trader.traderInfo = ti
+		registered[convertTrueFalse( rice)][convertTrueFalse( sell)].add(ti)
+		println("Register - Market " + this.id +  "!! " + (sell ? "Sell - " : "Buy - ") + (rice ? "Rice - " : "Water - ") + amount +" for " +pricePerUnit + "per unit.")
 		return true
 	}
 	

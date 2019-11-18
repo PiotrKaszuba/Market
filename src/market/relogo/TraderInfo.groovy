@@ -6,7 +6,7 @@ class TraderInfo {
 	def rice
 	def amount
 	def pricePerUnit
-	def TraderInfo(Trader trader, boolean sell, boolean rice, int amount, int pricePerUnit) {
+	def TraderInfo(Trader trader, boolean sell, boolean rice, int amount, def pricePerUnit) {
 		this.trader = trader
 		this.sell = sell
 		this.rice = rice

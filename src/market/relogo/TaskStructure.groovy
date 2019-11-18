@@ -2,16 +2,17 @@ package market.relogo
 import market.ReLogoTurtle
 class TaskStructure {
 	
-	float attractiveness
-	float cost
-	float gain
-	
+	def attractiveness
+	def cost
+	def gain
+	def initialAmounts = []
 	List<ReLogoTurtle> targets
 	List actions
 	List needSoFar
 	List already_evaluated
 	
-	def TaskStructure(def attractiveness = 0, def cost = 0, def gain = 0, List<ReLogoTurtle> targets = [], List actions = [], List needSoFar = [], List already_evaluated = []) {
+	def TaskStructure(def attractiveness, def cost , def gain , List<ReLogoTurtle> targets , List actions , List needSoFar , List already_evaluated ) {
+		this.attractiveness = attractiveness
 		this.cost = cost
 		this.gain = gain
 		this.targets = targets
@@ -28,15 +29,15 @@ class TaskStructure {
 		this.actions.addAll(subTask.actions)
 		this.needSoFar.addAll(subTask.needSoFar)
 		this.already_evaluated.addAll(subTask.already_evaluated)
-		this.attractiveness = this.gain - this.cost
+		this.attractiveness = this.attractiveness + subTask.attractiveness
 		return this
 	}
 	
 	def toTaskSteps() {
 		
 		List taskSteps = []
-		for(int i =0;i< this.actions.size(); i++ ) {
-			taskSteps.add(['do' : 'goto', 'target' : targets[i] ]);
+		for(int i=this.actions.size()-1; i>= 0; i-- ) {
+			taskSteps.add(['do' : 'goto', 'target' : targets[i]]);
 			taskSteps.add(actions[i])
 		}
 		return taskSteps
