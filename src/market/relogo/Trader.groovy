@@ -24,7 +24,7 @@ class Trader extends ReLogoTurtle {
 	def overPanicBuyFactor = 1.5
 	int hunger
 	int thirst
-	int travelCost = 3
+	int travelCost = 1
 	int needThreshold = 25
 	def task = null
 	List taskSteps = null
@@ -159,7 +159,7 @@ class Trader extends ReLogoTurtle {
 		
 		def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
 		//println(ambitionBasedAnger)
-		def price = ((localPrice - ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - goldFactor)*(Math.random()/4+0.85))
+		def price = ((localPrice - ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - goldFactor)*(Math.random()/10+0.94))
 		price = price >= 1 ? price : 1/(2-price)
 		def ret = [price, Math.max(1,howMuchWillSell)]
 		return ret
@@ -205,7 +205,7 @@ class Trader extends ReLogoTurtle {
 				def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
 				
 				def goldFactor = Math.log((resourceAmount-panicThreshold/2)/panicThreshold +1) * Math.log(gold/10+1) * 2/ambition
-				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - howMuchWantedToBuyButDontWantToSpend/8 + goldFactor + panicThreshold/(resourceAmount+0.1*panicThreshold) -1  )*(Math.random()/4+0.9)
+				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - howMuchWantedToBuyButDontWantToSpend/8 + goldFactor + panicThreshold/(resourceAmount+0.1*panicThreshold) -1  )*(Math.random()/10+0.96)
 				price = price >= 1 ? price : 1/(2-price)
 				def ret = [price, Math.max(1, Math.min(wantToBuy, Math.floor(gold/price)))]
 				return ret
@@ -314,9 +314,10 @@ class Trader extends ReLogoTurtle {
 		if(hunger <=0 || thirst <= 0) {
 			if(state=='registered' && taskSteps != null) {
 				taskSteps[0]['target'].unregister(this)
-				state = 'free'
+				finishedTask()
 				eat()
 				deathCheck()
+				return
 			}
 			alive = false
 			println("+++++++++++++++++")

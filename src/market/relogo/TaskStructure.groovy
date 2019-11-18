@@ -30,6 +30,7 @@ class TaskStructure {
 		this.needSoFar.addAll(subTask.needSoFar)
 		this.already_evaluated.addAll(subTask.already_evaluated)
 		this.attractiveness = this.attractiveness + subTask.attractiveness
+		this.attractiveness -= Math.abs(subTask.attractiveness) * 0.5
 		return this
 	}
 	

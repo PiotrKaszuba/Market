@@ -35,7 +35,7 @@ class StandardBehaviour {
 	}
 	
 	def randomFactor() {
-		return Math.random()/randomDiv + randomShift
+		return 1//Math.random()/randomDiv + randomShift
 	}
 	
 	def miningAppendAttractiveness(List<TaskStructure> taskAtts, Resource mine, def cost, def needRes) {
@@ -57,9 +57,9 @@ class StandardBehaviour {
 		def priceDiff = globalPrice[needRes]-market.discountedMeanPrice(needRes)
 		
 		if(needResAmount < turtle.panicThreshold) {
-			for(def i =1; i<=wantToBuy; i++) {
+			for(def i = 1; i<=wantToBuy; i++) {
 				def willBuy = Math.min((float)i,(float)expectedBuy)
-				def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(i/5+1)/3
+				def gain = willBuy * priceDiff // (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(i/5+1)/3
 				def attractiveness = (gain - cost) * randomFactor()
 				taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : i, 'target':market]], [needRes], [false]))
 			}
@@ -67,7 +67,7 @@ class StandardBehaviour {
 		}
 		else {
 			def willBuy = Math.min((float)wantToBuy,(float)expectedBuy)
-			def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(wantToBuy/5+1)/3
+			def gain = willBuy * priceDiff //+ (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(wantToBuy/5+1)/3
 			def attractiveness = (gain - cost) * randomFactor()
 			taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : wantToBuy, 'target':market] ], [needRes], [false]))
 		}
@@ -208,7 +208,7 @@ class StandardBehaviour {
 		
 		
 		ReLogoTurtle startLocationTurtle = taskStructure.targets.empty ? turtle : taskStructure.targets[0]
-		
+		//print(taskStructure.targets.size())
 		List<TaskStructure> tasks = []
 		
 		
@@ -324,6 +324,7 @@ class StandardBehaviour {
 	def checkIfPossibleToFinish(TaskStructure ta, def amounts) {
 		
 		amounts.each { if (it - ta.cost*100 <=0) {
+			//println("dont do it!")
 			 return false
 		} 
 		}
