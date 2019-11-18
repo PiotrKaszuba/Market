@@ -160,8 +160,9 @@ class Market extends ReLogoTurtle {
 		transactionRecord['pricePerUnit'] = seller.pricePerUnit
 		history[0][productString]['transactions'].add(0,transactionRecord)
 		this.total_transactions +=1
-		this.destroy_after += 12
+		this.destroy_after += 25
 		this.last_transaction = 0
+		this.history_length += 2
 		UserObserver.transactions +=1
 		println("------------------")
 		println("Transaction!! Market " + this.id +", X: " +xcor +", Y: " +ycor)

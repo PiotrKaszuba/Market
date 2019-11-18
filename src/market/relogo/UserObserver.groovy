@@ -12,33 +12,37 @@ import market.context.SimBuilder
 class UserObserver extends ReLogoObserver{
 		
 		int turn = 0
+		def i
+		def traders=0
+		def markets=0
+		def maxX = SimBuilder.maxPxcor
+		def maxY = SimBuilder.maxPycor
 		public static def globalPrice = ['rice':10, 'water':10]
 		public static def transactions = 0
 		@Setup
 		def setup(){
-			def maxX = SimBuilder.maxPxcor
-			def maxY = SimBuilder.maxPycor
+			
 			clearAll()
-			def i=0
-			createTraders(100){
+			i=0
+			createTraders(150){
 				it.xcor= random(maxX)
 				it.ycor= random(maxY)
 				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
 				it.resourceMiningAbility['rice'] = false
 				i+=1
 			}
-			createTraders(200){
+			createTraders(150){
 				it.xcor= random(maxX)
 				it.ycor= random(maxY)
 				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
 				it.resourceMiningAbility['water'] = false
 				i+=1
 			}
-			createMarkets(30){
+			createMarkets(50){
 				it.setXcor(random(maxX))
 				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
-				it.construct(i,random(300)+250, random(10+1))
+				it.construct(i,random(300)+150, random(10+1))
 				i+=1
 				}
 			createResources(1){
@@ -83,20 +87,51 @@ class UserObserver extends ReLogoObserver{
 		@Go
 		def go(){
 			turn +=1
+			if(turn%299==0) {
+				createMarkets(1){
+					it.setXcor(random(maxX))
+					it.setYcor(random(maxX))
+					it.facexy(it.getXcor(), it.getYcor()-1)
+					it.construct(i,random(300)+150, random(10+1))
+					i+=1
+					}
+			}
+				
 			if(turn%100 == 0) {
 				println("@@@@@@@@@@@@@@@@@")
 				println("Total transactions: " + transactions)
 				println("Global price: " + globalPrice)
+				println("Traders: " + traders )
+				println("Markets: " + markets )
 				println("@@@@@@@@@@@@@@@@@")
+				
+				createTraders(1){
+					it.xcor= random(maxX)
+					it.ycor= random(maxY)
+					it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
+					it.resourceMiningAbility['rice'] = false
+					i+=1
+				}
+				createTraders(1){
+					it.xcor= random(maxX)
+					it.ycor= random(maxY)
+					it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
+					it.resourceMiningAbility['water'] = false
+					i+=1
+				}
+				
 			}
 			//println("turn "+ turn)
 			def sum = [0,0]
 			def counter = [0,0]
 			List res = ['rice', 'water']
+			traders = 0
+			markets = 0
 			//long now = System.currentTimeMillis();
 			ask(turtles()){
 				if (it instanceof Trader) {
 				it.step(globalPrice)
+				traders+=1
 				}
 			}
 			//System.out.println( (System.currentTimeMillis() - now) + " ms");
@@ -109,6 +144,7 @@ class UserObserver extends ReLogoObserver{
 							sum[k] += it.discountedMeanPrice(res[k])
 							counter[k]+=1
 						}
+					markets+=1
 				}
 				
 			}

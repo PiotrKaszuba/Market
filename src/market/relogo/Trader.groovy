@@ -24,11 +24,11 @@ class Trader extends ReLogoTurtle {
 	def overPanicBuyFactor = 1.5
 	int hunger
 	int thirst
-	int travelCost = 2
+	int travelCost = 3
 	int needThreshold = 25
 	def task = null
 	List taskSteps = null
-	def miningFatigue = 8
+	def miningFatigue = 10
 	int ambition
 	boolean alive = true
 	def traderInfo = null

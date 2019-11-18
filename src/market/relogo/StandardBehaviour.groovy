@@ -40,7 +40,7 @@ class StandardBehaviour {
 	
 	def miningAppendAttractiveness(List<TaskStructure> taskAtts, Resource mine, def cost, def needRes) {
 		def timeout = this.base_mine_timeout + Math.floor(turtle.ambition/2).toInteger()
-		def gain = resourceMineGain(mine, timeout) * mine.current_resource/mine.max_resource
+		def gain = resourceMineGain(mine, timeout) * (mine.current_resource/mine.max_resource)**1.5
 		def miningCost = timeout * (turtle.miningFatigue+1)/100 * (resourceUsageFactors['rice'] + resourceUsageFactors['water'])
 		cost = cost + miningCost
 		def attractiveness = (gain - cost)*randomFactor()
@@ -52,14 +52,14 @@ class StandardBehaviour {
 	def marketAppendAttractivenessBuy(List<TaskStructure> taskAtts, Market market, def cost, def needRes, def needResAmount, def wantToBuy) {
 		def timeout = this.base_market_timeout + turtle.ambition * 5
 		cost = cost + timeout/100
-		def expectedBuy = timeout * (2*market.meanAmountSoldPerStep(needRes) + resourceLeftFactor * market.meanOfResourceLft(needRes))
+		def expectedBuy = timeout * (2*market.meanAmountSoldPerStep(needRes) + 2*resourceLeftFactor * market.meanOfResourceLft(needRes))
 		
 		def priceDiff = globalPrice[needRes]-market.discountedMeanPrice(needRes)
 		
 		if(needResAmount < turtle.panicThreshold) {
 			for(def i =1; i<=wantToBuy; i++) {
 				def willBuy = Math.min((float)i,(float)expectedBuy)
-				def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(wantToBuy/5+1)/3
+				def gain = willBuy * priceDiff + (needResAmount < turtle.panicThreshold ? willBuy/3 : 0) + Math.log(i/5+1)/3
 				def attractiveness = (gain - cost) * randomFactor()
 				taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [['do' : 'buy', 'timeout' : timeout, 'resource' : needRes, 'amount' : i, 'target':market]], [needRes], [false]))
 			}
@@ -79,12 +79,12 @@ class StandardBehaviour {
 	def marketAppendAttractivenessSell(List<TaskStructure> taskAtts, Market market, def cost, def sellRes, def sellResAmount, def wantToSell) {
 		def timeout = this.base_market_timeout + turtle.ambition * 3
 		cost = cost + timeout/100
-		def expectedSell = timeout * (2*market.meanAmountSoldPerStep(sellRes) - resourceLeftFactor * market.meanOfResourceLft(sellRes))
+		def expectedSell = timeout * (2*market.meanAmountSoldPerStep(sellRes) - resourceLeftFactor/2 * market.meanOfResourceLft(sellRes))
 		def lowResourcePunish =  Math.log(wantToSell*1.5+3) * Math.min(0, Math.signum(sellResAmount-turtle.panicThreshold)* Math.pow(sellResAmount-turtle.panicThreshold,2) ) / (turtle.panicThreshold)
 		def lowResourceFactor = Math.min(1.0, (sellResAmount-turtle.panicThreshold)/turtle.panicThreshold)
 		def priceDiff = globalPrice[sellRes]-market.discountedMeanPrice(sellRes)
 		def willSell = Math.min( (float)wantToSell, (float)expectedSell)
-		def gain = (willSell * priceDiff + Math.log(wantToSell/4+1))*lowResourceFactor - lowResourcePunish
+		def gain = (willSell * priceDiff + Math.log(wantToSell/4+1))*lowResourceFactor + lowResourcePunish
 		def attractiveness = (gain - cost) * randomFactor()
 		taskAtts.add(new TaskStructure(attractiveness, cost, gain, [market], [ ['do' : 'sell', 'timeout' : timeout, 'resource' : sellRes, 'wantGetGoldAmount' : wantToSell, 'target':market] ], ['gold'], [false]))
 		

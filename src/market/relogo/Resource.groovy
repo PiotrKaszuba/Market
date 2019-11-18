@@ -17,7 +17,7 @@ class Resource extends ReLogoTurtle {
 	def max_resource
 	def resource_renewal
 	def current_resource
-	def r = 0
+	def r = 0.35
 	def base_mine = 1
 	int id
 	def construct(int id, def resource_type, def r_factor=0, def max_resource=100, def resource_renewal=1) {
@@ -42,7 +42,7 @@ class Resource extends ReLogoTurtle {
 		def elapsed_time = record[1]
 		registered.remove(trader.id)
 		def mined = sumOfArithmeticSequence(elapsed_time, base_mine, r)
-		mined = Math.floor(mined).toInteger()
+		mined = Math.round(mined).toInteger()
 		increaseTraderRes(trader, mined)
 	}
 	
