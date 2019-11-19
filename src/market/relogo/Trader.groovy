@@ -170,21 +170,21 @@ class Trader extends ReLogoTurtle {
 				
 				
 				//ile ma
-				//ile chcia³by kupiæ?
-				//ile w sumie mo¿e kupiæ za swoje z³oto bazujac na dMP
+				//ile chciaï¿½by kupiï¿½?
+				//ile w sumie moï¿½e kupiï¿½ za swoje zï¿½oto bazujac na dMP
 				
-				//no to do progu 1.5*panicThresh za cene rynkow¹ chcemy kupiæ
+				//no to do progu 1.5*panicThresh za cene rynkowï¿½ chcemy kupiï¿½
 				
 				// pytanie - jak atrakcyjna jest dla nas cena rynkowa??
 				
 				// od czego zalezy atrakcyjnosc ceny na rynku?
 				
 				//1. cena globalna
-				//2. moja potrzeba - jak ma³o mam tego zasobu??/ jak du¿o mi brakuje/czy ryzyko œmierci?
-				//3. prawdopodobieñstwo zakupu w krótkim czasie - jakim? jak bardoz liczy siê krótki czas? ryzyko smierci? jakie prawdop? - analiza statystyk marketu
-				//4. ambicja -> chêæ zyskania a nie straty -> taniej!!
-				//5. "humor" -> stochastycznoœæ!!!
-				//6. ile mam z³ota / ile mogê kupic
+				//2. moja potrzeba - jak maï¿½o mam tego zasobu??/ jak duï¿½o mi brakuje/czy ryzyko ï¿½mierci?
+				//3. prawdopodobieï¿½stwo zakupu w krï¿½tkim czasie - jakim? jak bardoz liczy siï¿½ krï¿½tki czas? ryzyko smierci? jakie prawdop? - analiza statystyk marketu
+				//4. ambicja -> chï¿½ï¿½ zyskania a nie straty -> taniej!!
+				//5. "humor" -> stochastycznoï¿½ï¿½!!!
+				//6. ile mam zï¿½ota / ile mogï¿½ kupic
 				
 				def goldToSpendAdditionally = Math.max(0,gold - goldSaving)
 				def resourceAmount = resource.equals('rice') ? rice : water
@@ -356,6 +356,8 @@ class Trader extends ReLogoTurtle {
 					}
 					else
 					{
+// Here we should set tasks according to the character of the trader											
+
 //						left(random(90))
 //						right(random(90))
 //						forward(random(velocity))
