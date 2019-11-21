@@ -28,7 +28,7 @@ class Market extends ReLogoTurtle {
 	def meanOfResourceLftVar = ['rice' : null, 'water' : null]
 	def meanAmountSoldPerStepVar= ['rice' : null, 'water' : null]
 	def discountedMeanPriceVar= ['rice' : null, 'water' : null]
-	
+	def meanOfBuyerWntVar = ['rice' : null, 'water' : null]
 	List history = []
 	
 	
@@ -38,16 +38,33 @@ class Market extends ReLogoTurtle {
 	
 	def resetStatistics() {
 		meanOfResourceLftVar = ['rice' : null, 'water' : null]
+		meanOfBuyerWntVar = ['rice' : null, 'water' : null]
 		meanAmountSoldPerStepVar= ['rice' : null, 'water' : null]
 		discountedMeanPriceVar= ['rice' : null, 'water' : null]
 	}
 	
 	def getHistoryPureRecord() {
-		return ['water' : ['transactions': [], 'resourceLeft': 0], 'rice': ['transactions': [], 'resourceLeft': 0]]
+		return ['water' : ['transactions': [], 'resourceLeft': 0, 'buyerWants': 0], 'rice': ['transactions': [], 'resourceLeft': 0, 'buyerWants': 0]]
 	}
 	def transactionPureRecord() {
 		return ['amount':0, 'pricePerUnit':0]
 	}
+	def meanOfBuyerWnt(def resource) {
+		if(meanOfBuyerWntVar[resource] != null)
+			return meanOfBuyerWntVar[resource]
+		
+		
+		def sum = 0
+		def counter = 0
+		history.each {
+			sum = sum + it.get(resource).get('buyerWants')
+			counter = counter + 1
+		}
+		meanOfBuyerWntVar[resource] = counter!=0 ? sum/counter  : 0
+		return meanOfBuyerWntVar[resource]
+	}
+	
+	
 	def meanOfResourceLft(def resource) {
 		if(meanOfResourceLftVar[resource] != null)
 			return meanOfResourceLftVar[resource]
@@ -68,9 +85,10 @@ class Market extends ReLogoTurtle {
 		def sum = 0
 		def counter = 0
 		history.each {
+			counter = counter + 1
 			it.get(resource).get('transactions').each { t ->
 				sum = sum + t.get('amount')
-				counter = counter + 1
+				
 			}
 		}
 		meanAmountSoldPerStepVar[resource] = counter!=0 ? sum/counter  : 0
@@ -92,7 +110,7 @@ class Market extends ReLogoTurtle {
 				counter = counter + (length - i)
 			}
 		}
-		discountedMeanPriceVar[resource] = counter!=0 ? sum/counter  : UserObserver.globalPrice[resource]
+		discountedMeanPriceVar[resource] = counter!=0 ? sum/counter  : 9.5+Math.random()-(meanOfResourceLft(resource)-meanOfBuyerWnt(resource))*0.75
 		return discountedMeanPriceVar[resource]
 	}
 	
@@ -131,11 +149,16 @@ class Market extends ReLogoTurtle {
 		
 		[['rice', true], ['water', false]].forEach { product, productBool -> 
 			def resourceLeft = 0
-			
+			def buyerWants = 0
 			registered[convertTrueFalse( productBool )][convertTrueFalse( true )].each { v->
 				resourceLeft+=v.amount
 			}
 			history[0][product]['resourceLeft'] = resourceLeft
+			
+			registered[convertTrueFalse( productBool )][convertTrueFalse( false )].each { v->
+				buyerWants+=v.amount
+			}
+			history[0][product]['buyerWants'] = buyerWants
 		}
 		
 		
@@ -154,15 +177,19 @@ class Market extends ReLogoTurtle {
 		seller.amount -= amount
 		buyer.amount -= amount
 		
+		
 		def productString =  rice ? 'rice' : 'water'
+		
+		seller.trader.personalSellBuy[productString] *= (1+0.025*amount)
+		buyer.trader.personalSellBuy[productString] *= (1-0.05*amount)
 		def transactionRecord = transactionPureRecord()
 		transactionRecord['amount'] = amount
 		transactionRecord['pricePerUnit'] = seller.pricePerUnit
 		history[0][productString]['transactions'].add(0,transactionRecord)
 		this.total_transactions +=1
-		this.destroy_after += 50
+		this.destroy_after += 25
 		this.last_transaction = 0
-		this.history_length += 2
+		this.history_length += 1
 		UserObserver.transactions +=1
 		println("------------------")
 		println("Transaction!! Market " + this.id +", X: " +xcor +", Y: " +ycor)
@@ -219,13 +246,22 @@ class Market extends ReLogoTurtle {
 		if(ti.sell){
 			if(ti.rice) {
 				trader.rice += ti.amount
+				trader.personalSellBuy['rice'] *= 1-0.025*ti.amount
 			}
 			else {
 				trader.water+=ti.amount
+				trader.personalSellBuy['water'] *= 1-0.025*ti.amount
 			}
 		}
 		else {
 			trader.gold += ti.amount * ti.pricePerUnit
+			if(ti.rice){
+				trader.personalSellBuy['rice'] *= 1+0.025*ti.amount
+				
+			}
+			else {
+				trader.personalSellBuy['water'] *= 1+0.025*ti.amount
+			}
 		}
 		trader.traderInfo = null
 		return true

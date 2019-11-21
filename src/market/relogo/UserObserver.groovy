@@ -20,7 +20,7 @@ class UserObserver extends ReLogoObserver{
 		def gold
 		def maxX = SimBuilder.maxPxcor
 		def maxY = SimBuilder.maxPycor
-		public static def globalPrice = ['rice':12, 'water':12]
+		public static def globalPrice = ['rice':10, 'water':10]
 		public static def transactions = 0
 		@Setup
 		def setup(){
@@ -30,14 +30,14 @@ class UserObserver extends ReLogoObserver{
 			createTraders(150){
 				it.xcor= random(maxX)
 				it.ycor= random(maxY)
-				it.construct(i, random(10)+7, random(10)+7, random(40)+40, random(100)+100, random(100)+100, random(10)+1)
+				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
 				it.resourceMiningAbility['rice'] = false
 				i+=1
 			}
 			createTraders(150){
 				it.xcor= random(maxX)
 				it.ycor= random(maxY)
-				it.construct(i, random(10)+7, random(10)+7, random(40)+40, random(100)+100, random(100)+100, random(10)+1)
+				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
 				it.resourceMiningAbility['water'] = false
 				i+=1
 			}
@@ -48,37 +48,44 @@ class UserObserver extends ReLogoObserver{
 				it.construct(i,random(300)+250, random(10+1))
 				i+=1
 				}
-			createResources(1){
-				it.setXcor(10)
-				it.setYcor(10)
+			createResources(2){
+				it.setXcor(random(maxX))
+				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
 				it.construct(i, 'rice')
 				i+=1
 			}
-			createResources(1){
-				it.setXcor(90)
-				it.setYcor(90)
+			createResources(2){
+				it.setXcor(random(maxX))
+				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
 				it.construct(i, 'water')
 				i+=1
 			}
+//			createResources(1){
+//				it.setXcor(10)
+//				it.setYcor(90)
+//				it.facexy(it.getXcor(), it.getYcor()-1)
+//				it.construct(i, 'water')
+//				i+=1
+//			}
+//			createResources(1){
+//				it.setXcor(90)
+//				it.setYcor(10)
+//				it.facexy(it.getXcor(), it.getYcor()-1)
+//				it.construct(i, 'rice')
+//				i+=1
+//			}
 			createResources(1){
-				it.setXcor(10)
-				it.setYcor(90)
+				it.setXcor(random(maxX))
+				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
-				it.construct(i, 'water')
+				it.construct(i, 'gold')
 				i+=1
 			}
 			createResources(1){
-				it.setXcor(90)
-				it.setYcor(10)
-				it.facexy(it.getXcor(), it.getYcor()-1)
-				it.construct(i, 'rice')
-				i+=1
-			}
-			createResources(1){
-				it.setXcor(50)
-				it.setYcor(50)
+				it.setXcor(random(maxX))
+				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
 				it.construct(i, 'gold')
 				i+=1
@@ -90,7 +97,7 @@ class UserObserver extends ReLogoObserver{
 		@Go
 		def go(){
 			turn +=1
-			if(turn%100==0) {
+			if(turn%199==0) {
 				createMarkets(1){
 					it.setXcor(random(maxX))
 					it.setYcor(random(maxX))
@@ -109,6 +116,31 @@ class UserObserver extends ReLogoObserver{
 				println("Rice: " + rice)
 				println("Water: " +water)
 				println("Gold: " + gold)
+				
+				ask(turtles()){
+					if (it instanceof Market) {
+						
+						if(it.alive) {
+							println("Market " + it.id+", X: " +it.xcor+", Y: "+it.ycor +", Rice: wnt: " + it.meanOfBuyerWnt('rice') +", lft: " + it.meanOfResourceLft('rice') +", sell: " + it.meanAmountSoldPerStep('rice')
+								+", price: " + it.discountedMeanPrice('rice') + "; Water: wnt: " + it.meanOfBuyerWnt('water') +", lft: " + it.meanOfResourceLft('water') + ", sell: " + it.meanAmountSoldPerStep('water')
+								+", price: " + it.discountedMeanPrice('water'))
+						}
+							
+						
+					}
+					
+				}
+				ask(turtles()){
+					if (it instanceof Resource) {
+						
+						
+							println("Resource " + it.type+", X: " +it.xcor+", Y: "+it.ycor)
+						
+							
+						
+					}
+					
+				}
 				println("@@@@@@@@@@@@@@@@@")
 				
 				createTraders(2){
@@ -162,8 +194,12 @@ class UserObserver extends ReLogoObserver{
 					it.step(globalPrice)
 					if(it.alive)
 						for(int k = 0; k< res.size(); k++ ) {
-							sum[k] += it.discountedMeanPrice(res[k])
-							counter[k]+=1
+							def val = it.discountedMeanPrice(res[k])
+							if(val) {
+								sum[k] += val
+								counter[k]+=1
+							}
+							
 						}
 					markets+=1
 				}

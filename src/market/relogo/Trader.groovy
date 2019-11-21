@@ -24,16 +24,17 @@ class Trader extends ReLogoTurtle {
 	def overPanicBuyFactor = 1.5
 	int hunger
 	int thirst
-	int travelCost = 1
+	int travelCost = 2
 	int needThreshold = 25
 	def task = null
+	def personalSellBuy = ['water':10, 'rice':10 ]
 	List taskSteps = null
-	def miningFatigue = 10
+	def miningFatigue = 8
 	int ambition
 	boolean alive = true
 	def traderInfo = null
 	String state = 'free'
-	def velocity = 1.25
+	def velocity = 1.35
 	def goldSaving = 0
 	def resourceMiningAbility = ['water':true,'rice':true, 'gold':true]
 	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition) {
@@ -90,26 +91,28 @@ class Trader extends ReLogoTurtle {
 		def otherResConsumeAmount
 		def panicResAmount
 		def resourceUsageFactors 
+		def otherResourceRisk1 = Math.max(1.0, 1+0.05*(panicThreshold-rice))
+		def otherResourceRisk2 =Math.max(1.0, 1+0.05*(panicThreshold-water))
 		if(water<=rice) {
 			panicRes = 'water'
 			panicResAmount = water
-			otherResourceRisk = Math.sqrt(Math.max(1.0, 1.2*panicThreshold-rice))
+			
 			panicResConsumeAmount = water*100+thirst
 			otherResConsumeAmount = rice*100+hunger
-			resourceUsageFactors = ['rice' : otherResourceRisk, 'water':1]
+			resourceUsageFactors = ['rice' : 0, 'water':1]
 		}
 		else {
 			panicRes = 'rice'
 			panicResAmount = rice
-			otherResourceRisk = Math.sqrt(Math.max(1.0, 1.2*panicThreshold-water))
+			
 			panicResConsumeAmount = rice*100+hunger
 			otherResConsumeAmount = water*100+thirst
-			resourceUsageFactors = ['water' : otherResourceRisk, 'rice':1]
+			resourceUsageFactors = ['water' : 0, 'rice': 1]
 		}
 		
 		def needAmount = panicThreshold * overPanicBuyFactor - panicResAmount
 		
-		
+		personalSellBuy[panicRes] *= 1+0.05*needAmount
 		StandardBehaviour sb = new StandardBehaviour(this, panicRes, needAmount, globalPrice, resourceUsageFactors)
 		TaskStructure ts =  sb.invokeTask()
 		
@@ -139,7 +142,7 @@ class Trader extends ReLogoTurtle {
 	def sellPriceAndAmount(Market market, def resource, def globalPrice, def wantToGainGold) {
 		def resourceAmount = resource.equals('rice') ? rice : water
 		def localPrice = market.discountedMeanPrice(resource)
-		def resourceToSpend = Math.max(0, resourceAmount - panicThreshold).toInteger()
+		def resourceToSpend = Math.max((float)0.0, (float)(resourceAmount - panicThreshold)).toInteger()
 		
 		def howMuchShouldSell = wantToGainGold/localPrice
 		
@@ -151,15 +154,19 @@ class Trader extends ReLogoTurtle {
 		def howMuchWantedToBuyButDontWantToSpend = wantToGainGold - howMuchWantAfford
 		
 		def meanResLeft = market.meanOfResourceLft(resource)
+		def meanBuyWnt = market.meanOfBuyerWnt(resource)
 		def meanSoldPerStep = market.meanAmountSoldPerStep(resource)
 		
 		def goldFactor = Math.log((resourceAmount-panicThreshold/2)/panicThreshold +1) * Math.log(gold/10+1) * 2/ambition
+		def costFactor=0
+//		if(taskStr!=null)
+//			costFactor+=taskStr.cost/10
 		
-		
-		
-		def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
+		//def ambitionBasedAnger = localGlobalAngerFunction(localPrice, globalPrice)
 		//println(ambitionBasedAnger)
-		def price = ((localPrice - ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - goldFactor)*(Math.random()/10+0.94))
+		def price = ((localPrice + costFactor+ meanSoldPerStep/5 + (meanBuyWnt - meanResLeft)- goldFactor + howMuchWantedToBuyButDontWantToSpend/10)*(Math.random()/4+0.875))
+		def ambitionPersonalFactor = (0.04+0.0125*ambition)
+		price = personalSellBuy[resource] * ambitionPersonalFactor + price *(1-ambitionPersonalFactor)
 		price = price >= 1 ? price : 1/(2-price)
 		def ret = [price, Math.max(1,howMuchWillSell)]
 		return ret
@@ -185,8 +192,10 @@ class Trader extends ReLogoTurtle {
 				//4. ambicja -> chêæ zyskania a nie straty -> taniej!!
 				//5. "humor" -> stochastycznoœæ!!!
 				//6. ile mam z³ota / ile mogê kupic
-				
-				def goldToSpendAdditionally = Math.max(0,gold - goldSaving)
+				def costFactor = 0
+//				if(taskStr!=null)
+//					costFactor+=taskStr.cost/10
+				def goldToSpendAdditionally = Math.max((float)0.0, (float)(gold - goldSaving))
 				def resourceAmount = resource.equals('rice') ? rice : water
 				//def wantToBuy = 1.5*panicThreshold - resourceAmount
 				
@@ -200,12 +209,15 @@ class Trader extends ReLogoTurtle {
 				def howMuchWantedToBuyButDontWantToSpend = wantToBuy - howMuchWantAfford
 				
 				def meanResLeft = market.meanOfResourceLft(resource)
+				def meanBuyWnt = market.meanOfBuyerWnt(resource)
 				def meanSoldPerStep = market.meanAmountSoldPerStep(resource)
 				
 				def ambitionBasedAnger = localGlobalAngerFunction(globalPrice, localPrice)
 				
 				def goldFactor = Math.log((resourceAmount-panicThreshold/2)/panicThreshold +1) * Math.log(gold/10+1) * 2/ambition
-				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep*2 - meanResLeft/4 - howMuchWantedToBuyButDontWantToSpend/8 + goldFactor + panicThreshold/(resourceAmount+0.1*panicThreshold) -1  )*(Math.random()/10+0.96)
+				def price = (localPrice + ambitionBasedAnger + meanSoldPerStep/5 + (meanBuyWnt-meanResLeft) - howMuchWantedToBuyButDontWantToSpend/8 + costFactor + goldFactor + panicThreshold/(resourceAmount+0.1*panicThreshold) -1  )*(Math.random()/4+0.875)
+				def ambitionPersonalFactor = (0.04+0.0125*ambition)
+				price = personalSellBuy[resource] * ambitionPersonalFactor + price *(1-ambitionPersonalFactor)
 				price = price >= 1 ? price : 1/(2-price)
 				def ret = [price, Math.max(1, Math.min(wantToBuy, Math.floor(gold/price)))]
 				return ret

@@ -18,9 +18,9 @@ class Resource extends ReLogoTurtle {
 	def resource_renewal
 	def current_resource
 	def r = 0.5
-	def base_mine = 1.5
+	def base_mine = 1
 	int id
-	def construct(int id, def resource_type, def r_factor=0, def max_resource=60, def resource_renewal=1) {
+	def construct(int id, def resource_type, def r_factor=0, def max_resource=200, def resource_renewal=2) {
 		this.id = id
 		this.type = resource_type
 		this.r = r_factor
@@ -43,6 +43,8 @@ class Resource extends ReLogoTurtle {
 		registered.remove(trader.id)
 		def mined = sumOfArithmeticSequence(elapsed_time, base_mine, r)
 		mined = Math.round(mined).toInteger()
+		if(type.equals('gold'))
+			mined *= (UserObserver.globalPrice['water'] + UserObserver.globalPrice['rice'])/2
 		increaseTraderRes(trader, mined)
 	}
 	
@@ -51,7 +53,7 @@ class Resource extends ReLogoTurtle {
 		if(type.equals('rice')) trader.rice += mined
 		if(type.equals('water')) trader.water += mined
 		
-		//println("Trader " + trader.id +" mined " + mined + " " + type +".")
+		println("Trader " + trader.id +" mined " + mined + " " + type +".")
 	}
 	
 	def step() {
@@ -81,7 +83,7 @@ class Resource extends ReLogoTurtle {
 		} else if (delta_resource>0 && delta_resource<resource_renewal) {
 			current_resource = max_resource
 		}
-		//println("Current " + this.type+" in mine: " + current_resource)
+		println("Current " + this.type+" in mine: " + current_resource)
 		
 	}
 	
