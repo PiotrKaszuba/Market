@@ -1,5 +1,5 @@
-FATAL [Thread-2] 2019-11-09 20:30:06,853 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
-Current tick (0.0)
+FATAL [Thread-2] 2019-11-18 20:07:46,155 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
+Current tick (28.0)
 java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:72)
 	at repast.simphony.engine.controller.ScheduledMethodControllerAction$ScheduleMethodAllAction.execute(ScheduledMethodControllerAction.java:333)
@@ -14,19 +14,9 @@ Caused by: java.lang.reflect.InvocationTargetException
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
-Caused by: java.lang.NullPointerException
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:163)
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:121)
-	at repast.simphony.relogo.AbstractObserver.crt(AbstractObserver.java:425)
-	at repast.simphony.relogo.AbstractObserver.createTurtles(AbstractObserver.java:480)
-	at repast.simphony.relogo.Observer$createTurtles$0.callCurrent(Unknown Source)
-	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:157)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:185)
-	at market.relogo.UserObserver.setup(UserObserver.groovy:19)
-	... 10 more
-FATAL [Thread-2] 2019-11-09 20:33:12,320 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
-Current tick (0.0)
+Caused by: java.lang.OutOfMemoryError: Java heap space
+FATAL [Thread-2] 2019-11-18 20:11:10,389 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
+Current tick (28.0)
 java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:72)
 	at repast.simphony.engine.controller.ScheduledMethodControllerAction$ScheduleMethodAllAction.execute(ScheduledMethodControllerAction.java:333)
@@ -41,41 +31,4 @@ Caused by: java.lang.reflect.InvocationTargetException
 	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
 	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
 	... 7 more
-Caused by: java.lang.NullPointerException
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:163)
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:121)
-	at repast.simphony.relogo.AbstractObserver.crt(AbstractObserver.java:425)
-	at market.ReLogoObserver.createMarkets(ReLogoObserver.java:30)
-	at market.ReLogoObserver$createMarkets.callCurrent(Unknown Source)
-	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:157)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:177)
-	at market.relogo.UserObserver.setup(UserObserver.groovy:19)
-	... 10 more
-FATAL [Thread-2] 2019-11-09 20:34:43,121 repast.simphony.ui.GUIScheduleRunner - RunTimeException when running the schedule
-Current tick (0.0)
-java.lang.RuntimeException: java.lang.reflect.InvocationTargetException
-	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:72)
-	at repast.simphony.engine.controller.ScheduledMethodControllerAction$ScheduleMethodAllAction.execute(ScheduledMethodControllerAction.java:333)
-	at repast.simphony.engine.schedule.DefaultAction.execute(DefaultAction.java:38)
-	at repast.simphony.engine.schedule.ScheduleGroup.executeList(ScheduleGroup.java:205)
-	at repast.simphony.engine.schedule.ScheduleGroup.execute(ScheduleGroup.java:231)
-	at repast.simphony.engine.schedule.Schedule.execute(Schedule.java:352)
-	at repast.simphony.ui.GUIScheduleRunner$ScheduleLoopRunnable.run(GUIScheduleRunner.java:52)
-	at java.base/java.lang.Thread.run(Thread.java:834)
-Caused by: java.lang.reflect.InvocationTargetException
-	at market.relogo.UserObserver$$FastClassByCGLIB$$5e8990bf.invoke(<generated>)
-	at net.sf.cglib.reflect.FastMethod.invoke(FastMethod.java:53)
-	at repast.simphony.engine.schedule.DynamicTargetAction.execute(DynamicTargetAction.java:69)
-	... 7 more
-Caused by: java.lang.NullPointerException
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:163)
-	at repast.simphony.relogo.factories.TurtleFactory.createTurtle(TurtleFactory.java:121)
-	at repast.simphony.relogo.AbstractObserver.crt(AbstractObserver.java:425)
-	at market.ReLogoObserver.createMarkets(ReLogoObserver.java:30)
-	at market.ReLogoObserver$createMarkets.callCurrent(Unknown Source)
-	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:157)
-	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:177)
-	at market.relogo.UserObserver.setup(UserObserver.groovy:19)
-	... 10 more
+Caused by: java.lang.OutOfMemoryError: Java heap space
