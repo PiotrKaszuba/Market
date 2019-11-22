@@ -39,7 +39,7 @@ class Trader extends ReLogoTurtle {
 	
 	def costAlready = 0
 	def resourceMiningAbility = ['water':true,'rice':true, 'gold':true]
-	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition, def character) {
+	def construct(int id, int rice, int water, int gold, int riceNeed, int waterNeed, int ambition, def character, int travelCost) {
 		this.id = id
 		this.rice = rice
 		this.water = water
@@ -48,6 +48,7 @@ class Trader extends ReLogoTurtle {
 		this.thirst = waterNeed
 		this.ambition = ambition
 		this.character = character
+		this.travelCost = travelCost
 	}
 	
 	def finishedStep() {
@@ -162,15 +163,15 @@ class Trader extends ReLogoTurtle {
 	}
 	def trace() {
 		if(id != -1) return
-		println("------------------------------")
-		println("Ambition: " + ambition)
-		println("X: " + xcor +", Y: " + ycor)
-		println("Hunger: " + hunger +", Thirst: " + thirst)
-		println("Rice: " + rice +", Water: " + water + ", Gold: " + gold)
-		println("Task Steps: " + taskSteps != null ? taskSteps : "null")
-		println("Task initial cost: " + (taskStr? taskStr.cost : "-")+ "; initial amounts: " + (taskStr ? taskStr.initialAmounts : []))
-		println("Cost already: " + this.costAlready)
-		println("------------------------------")
+//		println("------------------------------")
+//		println("Ambition: " + ambition)
+//		println("X: " + xcor +", Y: " + ycor)
+//		println("Hunger: " + hunger +", Thirst: " + thirst)
+//		println("Rice: " + rice +", Water: " + water + ", Gold: " + gold)
+//		println("Task Steps: " + taskSteps != null ? taskSteps : "null")
+//		println("Task initial cost: " + (taskStr? taskStr.cost : "-")+ "; initial amounts: " + (taskStr ? taskStr.initialAmounts : []))
+//		println("Cost already: " + this.costAlready)
+//		println("------------------------------")
 	}
 	def sellPriceAndAmount(Market market, def resource, def globalPrice, def wantToGainGold, def volunteer) {
 		def resourceAmount = resource.equals('rice') ? rice : water
@@ -202,7 +203,7 @@ class Trader extends ReLogoTurtle {
 		def businessmanPriceChanger2 = character.equals('businessman') && meanBuyWnt > 2*meanResLeft ? 1 : 0
 		def price = ((localPrice + costFactor+ meanSoldPerStep/5 + businessmanPriceChanger2 + (meanBuyWnt - meanResLeft)- goldFactor - volunteerPriceChanger)*businessmanPriceChanger*(Math.random()/4+0.875))
 		if(price < 1) {
-			println("lol")
+			//println("lol")
 		}
 		def ambitionPersonalFactor = (0.04+0.0125*ambition)
 		price = personalSellBuy[resource] * ambitionPersonalFactor + price *(1-ambitionPersonalFactor)
@@ -372,11 +373,11 @@ class Trader extends ReLogoTurtle {
 				return
 			}
 			alive = false
-			println("+++++++++++++++++")
-			println("Trader DEAD;  id: " + id + ", rice: " + rice + ", water: " + water + ", gold: " + gold)
-			println("Task Steps: " + taskSteps)
-			println("State: " + state)
-			println("+++++++++++++++++")
+//			println("+++++++++++++++++")
+//			println("Trader DEAD;  id: " + id + ", rice: " + rice + ", water: " + water + ", gold: " + gold)
+//			println("Task Steps: " + taskSteps)
+//			println("State: " + state)
+//			println("+++++++++++++++++")
 			die()
 			return true
 		}
@@ -409,10 +410,15 @@ class Trader extends ReLogoTurtle {
 					}
 					else
 					{
+						
+					
 // Here we should set tasks according to the character of the trader											
-						if(character == 'volunteer')
+						if(character.equals('volunteer')) {
 							volunteer(globalPrice)
-						if(character == 'businessman')
+							
+						}
+							
+						if(character.equals('businessman') )
 							business(globalPrice)
 //						left(random(90))
 //						right(random(90))

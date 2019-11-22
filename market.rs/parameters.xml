@@ -2,9 +2,17 @@
 <parameters>
 
 	<parameter name="randomSeed" displayName="Default Random Seed" type="int" defaultValue="__NULL__" />
-	<parameter name="default_observer_minPxcor" displayName="default_observer_minPxcor" type="int" defaultValue="-16"/>
-	<parameter name="default_observer_maxPxcor" displayName="default_observer_maxPxcor" type="int" defaultValue="16"/>
-	<parameter name="default_observer_minPycor" displayName="default_observer_minPycor" type="int" defaultValue="-16"/>
-	<parameter name="default_observer_maxPycor" displayName="default_observer_maxPycor" type="int" defaultValue="16"/>
+	<parameter name="riceMines" displayName="riceMines" type="int" defaultValue="1"/>
+	<parameter name="waterMines" displayName="waterMines" type="int" defaultValue="1"/>
+	<parameter name="businessmanCount" displayName="businessmanCount" type="int" defaultValue="100"/>
+	<parameter name="startRiceWater" displayName="startRiceWater" type="int" defaultValue="7"/><parameter
+		name="startGold" defaultValue="25" type="int" displayName="startGold">
+</parameter>
+	<parameter name="travelCost" displayName="travelCost" type="int"
+		defaultValue="2">
+	</parameter>
+	<parameter name="volunteerCount" defaultValue="100"
+		displayName="volunteerCount" type="int">
+	</parameter>
 
 </parameters>

@@ -1,3 +1,1 @@
-<?xml version="1.0"?>
-<sweep runs="1">
-</sweep>
+<?xml version="1.0" ?><sweep runs="1"><parameter name="volunteerCount" type="constant" constant_type="int" value="70"></parameter><parameter name="startRiceWater" type="constant" constant_type="int" value="8"></parameter><parameter name="startGold" type="constant" constant_type="int" value="40"></parameter><parameter name="riceMines" type="list" value_type="int" values="1 2"><parameter name="businessmanCount" type="list" value_type="int" values="70 140"><parameter name="travelCost" type="list" value_type="int" values="2 4"><parameter name="waterMines" type="list" value_type="int" values="1 2"></parameter></parameter></parameter></parameter></sweep>

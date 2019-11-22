@@ -40,7 +40,7 @@ class StandardBehaviour {
 	
 	def miningAppendAttractiveness(List<TaskStructure> taskAtts, Resource mine, def cost, def needRes) {
 		def timeout = this.base_mine_timeout + Math.floor(turtle.ambition).toInteger()
-		def gain = resourceMineGain(mine, timeout) * (mine.current_resource/mine.max_resource)
+		def gain = resourceMineGain(mine, timeout) * (mine.current_resource/mine.max_resource) - 1 
 		def miningCost = timeout * ((turtle.miningFatigue+1)/100) * (resourceUsageFactors['rice'] + resourceUsageFactors['water'])
 		cost = cost + miningCost
 		def attractiveness = (gain - cost)*randomFactor()

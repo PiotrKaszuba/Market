@@ -53,7 +53,7 @@ class Resource extends ReLogoTurtle {
 		if(type.equals('rice')) trader.rice += mined
 		if(type.equals('water')) trader.water += mined
 		
-		println("Trader " + trader.id +" mined " + mined + " " + type +".")
+//		println("Trader " + trader.id +" mined " + mined + " " + type +".")
 	}
 	
 	def step() {
@@ -83,7 +83,7 @@ class Resource extends ReLogoTurtle {
 		} else if (delta_resource>0 && delta_resource<resource_renewal) {
 			current_resource = max_resource
 		}
-		println("Current " + this.type+" in mine: " + current_resource)
+		//println("Current " + this.type+" in mine: " + current_resource)
 		
 	}
 	

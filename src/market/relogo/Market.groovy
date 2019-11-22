@@ -44,11 +44,77 @@ class Market extends ReLogoTurtle {
 		discountedMeanPriceVar= ['rice' : null, 'water' : null]
 	}
 	
+	def  harmonicMean(def data)
+	{
+		def sum = 0.0;
+	
+		for (int i = 0; i < data.size(); i++) {
+			sum += 1.0 / data[i];
+		}
+		return data.size() / sum;
+	}
+	def distanceFunctionToResource(def resource) {
+		List dists = []
+		ask(turtles()){
+			
+			if(it instanceof Resource && it.type.equals(resource)) {
+				 dists.add(this.distance(it))
+			}
+		}
+		for(int i =0; i<dists.size(); i++) {
+			dists[i] /= dists.size()
+		}
+		return harmonicMean(dists)
+	}
+	
+	def distanceFunctionToRice() {
+		return distanceFunctionToResource('rice')
+	}
+	def distanceFunctionToWater() {
+		return distanceFunctionToResource('water')
+	}
+	
 	def getHistoryPureRecord() {
 		return ['water' : ['transactions': [], 'resourceLeft': 0, 'buyerWants': 0], 'rice': ['transactions': [], 'resourceLeft': 0, 'buyerWants': 0]]
 	}
 	def transactionPureRecord() {
 		return ['amount':0, 'pricePerUnit':0]
+	}
+	
+	def MeanOfBuyerWntWater() {
+		
+		return meanOfBuyerWnt('water');
+	}
+	
+	def MeanOfBuyerWntRice() {
+		
+		return meanOfBuyerWnt('rice');
+	}
+	def MeanOfResourceLftRice() {
+		return meanOfResourceLft('rice');
+	}
+	
+	def MeanOfResourceLftWater() {
+		return meanOfResourceLft('water');
+	}
+	
+	def meanAmountSoldPerStepRice() {
+		
+		return meanAmountSoldPerStep('rice');
+	}
+	
+	def meanAmountSoldPerStepWater() {
+		
+		return meanAmountSoldPerStep('water');
+	}
+	
+	def discountedMeanPriceWater() {
+		
+		return discountedMeanPrice('water');
+	}
+	def discountedMeanPriceRice() {
+		
+		return discountedMeanPrice('rice');
 	}
 	def meanOfBuyerWnt(def resource) {
 		if(meanOfBuyerWntVar[resource] != null)
@@ -124,7 +190,7 @@ class Market extends ReLogoTurtle {
 		resetStatistics()
 		if(last_transaction > destroy_after) {
 			alive = false
-			println('Market dead, id - ' + this.id + ", transactions: " + this.total_transactions)
+			//println('Market dead, id - ' + this.id + ", transactions: " + this.total_transactions)
 			
 			registered.each { key,value -> value.each { k,v -> 
 				def clon = v.clone()
@@ -191,12 +257,12 @@ class Market extends ReLogoTurtle {
 		this.last_transaction = 0
 		this.history_length += 1
 		UserObserver.transactions +=1
-		println("------------------")
-		println("Transaction!! Market " + this.id +", X: " +xcor +", Y: " +ycor)
-		println("Sold " + amount +" " + productString + " for " + seller.pricePerUnit)
-		println("Seller: " + "offered: " + seller.pricePerUnit +"; id: " + seller.trader.id + ", rice: " + seller.trader.rice + ", water: " + seller.trader.water + ", gold: " + seller.trader.gold)
-		println("Buyer: " + "offered: " + buyer.pricePerUnit +"; id: " + buyer.trader.id + ", rice: " + buyer.trader.rice + ", water: " + buyer.trader.water + ", gold: " + buyer.trader.gold)
-		println("------------------")
+//		println("------------------")
+//		println("Transaction!! Market " + this.id +", X: " +xcor +", Y: " +ycor)
+//		println("Sold " + amount +" " + productString + " for " + seller.pricePerUnit)
+//		println("Seller: " + "offered: " + seller.pricePerUnit +"; id: " + seller.trader.id + ", rice: " + seller.trader.rice + ", water: " + seller.trader.water + ", gold: " + seller.trader.gold)
+//		println("Buyer: " + "offered: " + buyer.pricePerUnit +"; id: " + buyer.trader.id + ", rice: " + buyer.trader.rice + ", water: " + buyer.trader.water + ", gold: " + buyer.trader.gold)
+//		println("------------------")
 	}
 	
 	def checkForTransaction(def productDict, int rice) {
@@ -293,7 +359,7 @@ class Market extends ReLogoTurtle {
 		TraderInfo ti = new TraderInfo(trader, sell, rice, amount, pricePerUnit)
 		trader.traderInfo = ti
 		registered[convertTrueFalse( rice)][convertTrueFalse( sell)].add(ti)
-		println("Register - Market " + this.id +  "!! " + (sell ? "Sell - " : "Buy - ") + (rice ? "Rice - " : "Water - ") + amount +" for " +pricePerUnit + "per unit.")
+		//println("Register - Market " + this.id +  "!! " + (sell ? "Sell - " : "Buy - ") + (rice ? "Rice - " : "Water - ") + amount +" for " +pricePerUnit + "per unit.")
 		return true
 	}
 	
