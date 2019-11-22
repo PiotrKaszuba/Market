@@ -30,7 +30,8 @@ class Market extends ReLogoTurtle {
 	def discountedMeanPriceVar= ['rice' : null, 'water' : null]
 	def meanOfBuyerWntVar = ['rice' : null, 'water' : null]
 	List history = []
-	
+	// 'water' : 'sell', 'buy'
+	def registered = [0 : [1 : [], 0 : []], 1: [1 : [], 0 : []]]
 	
 	def convertTrueFalse(boolean b) {
 		return b ? 1 : 0
@@ -110,14 +111,13 @@ class Market extends ReLogoTurtle {
 				counter = counter + (length - i)
 			}
 		}
-		discountedMeanPriceVar[resource] = counter!=0 ? sum/counter  : 9.5+Math.random()-(meanOfResourceLft(resource)-meanOfBuyerWnt(resource))*0.75
+		discountedMeanPriceVar[resource] = counter!=0 ? sum/counter  : 9.5+Math.random() - Math.signum(meanOfResourceLft(resource)-meanOfBuyerWnt(resource)) * Math.abs((meanOfResourceLft(resource)-meanOfBuyerWnt(resource)))**0.5
 		return discountedMeanPriceVar[resource]
 	}
 	
 	
 	
-	// 'water' : 'sell', 'buy'
-	def registered = [0 : [1 : [], 0 : []], 1: [1 : [], 0 : []]]
+	
 	
 	def step(def globalPrice) {
 		if(alive) {

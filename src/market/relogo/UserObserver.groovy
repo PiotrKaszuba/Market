@@ -20,6 +20,9 @@ class UserObserver extends ReLogoObserver{
 		def gold
 		def maxX = SimBuilder.maxPxcor
 		def maxY = SimBuilder.maxPycor
+		def startRiceWaterRand = 10
+		def startRiceWater = 7
+		def characters = ['volunteer', 'businessman', 'balance']
 		public static def globalPrice = ['rice':10, 'water':10]
 		public static def transactions = 0
 		@Setup
@@ -27,20 +30,24 @@ class UserObserver extends ReLogoObserver{
 			
 			clearAll()
 			i=0
-			createTraders(150){
-				it.xcor= random(maxX)
-				it.ycor= random(maxY)
-				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
-				it.resourceMiningAbility['rice'] = false
-				i+=1
+			
+			characters.each {
+				createTraders(50){
+					it.xcor= random(maxX)
+					it.ycor= random(maxY)
+					it.construct(i, random(startRiceWaterRand)+startRiceWater, random(startRiceWaterRand)+startRiceWaterRand, random(40)+35, random(100)+100, random(100)+100, random(10)+1, it)
+					it.resourceMiningAbility['rice'] = false
+					i+=1
+				}
+				createTraders(50){
+					it.xcor= random(maxX)
+					it.ycor= random(maxY)
+					it.construct(i, random(startRiceWaterRand)+startRiceWater, random(startRiceWaterRand)+startRiceWaterRand, random(40)+35, random(100)+100, random(100)+100, random(10)+1, it)
+					it.resourceMiningAbility['water'] = false
+					i+=1
+				}
 			}
-			createTraders(150){
-				it.xcor= random(maxX)
-				it.ycor= random(maxY)
-				it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
-				it.resourceMiningAbility['water'] = false
-				i+=1
-			}
+			
 			createMarkets(30){
 				it.setXcor(random(maxX))
 				it.setYcor(random(maxX))
@@ -48,14 +55,14 @@ class UserObserver extends ReLogoObserver{
 				it.construct(i,random(300)+250, random(10+1))
 				i+=1
 				}
-			createResources(2){
+			createResources(1){
 				it.setXcor(random(maxX))
 				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
 				it.construct(i, 'rice')
 				i+=1
 			}
-			createResources(2){
+			createResources(1){
 				it.setXcor(random(maxX))
 				it.setYcor(random(maxX))
 				it.facexy(it.getXcor(), it.getYcor()-1)
@@ -83,13 +90,13 @@ class UserObserver extends ReLogoObserver{
 				it.construct(i, 'gold')
 				i+=1
 			}
-			createResources(1){
-				it.setXcor(random(maxX))
-				it.setYcor(random(maxX))
-				it.facexy(it.getXcor(), it.getYcor()-1)
-				it.construct(i, 'gold')
-				i+=1
-			}
+//			createResources(1){
+//				it.setXcor(random(maxX))
+//				it.setYcor(random(maxX))
+//				it.facexy(it.getXcor(), it.getYcor()-1)
+//				it.construct(i, 'gold')
+//				i+=1
+//			}
 		}
 		
 
@@ -98,13 +105,13 @@ class UserObserver extends ReLogoObserver{
 		def go(){
 			turn +=1
 			if(turn%199==0) {
-				createMarkets(1){
-					it.setXcor(random(maxX))
-					it.setYcor(random(maxX))
-					it.facexy(it.getXcor(), it.getYcor()-1)
-					it.construct(i,random(300)+150, random(10+1))
-					i+=1
-					}
+//				createMarkets(1){
+//					it.setXcor(random(maxX))
+//					it.setYcor(random(maxX))
+//					it.facexy(it.getXcor(), it.getYcor()-1)
+//					it.construct(i,random(300)+150, random(10+1))
+//					i+=1
+//					}
 			}
 				
 			if(turn%100 == 0) {
@@ -146,14 +153,14 @@ class UserObserver extends ReLogoObserver{
 				createTraders(2){
 					it.xcor= random(maxX)
 					it.ycor= random(maxY)
-					it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
+					it.construct(i, random(15)+8, random(15)+8, random(40)+35, random(100)+100, random(100)+100, random(10)+1, characters[random(characters.size())])
 					it.resourceMiningAbility['rice'] = false
 					i+=1
 				}
 				createTraders(2){
 					it.xcor= random(maxX)
 					it.ycor= random(maxY)
-					it.construct(i, random(10)+7, random(10)+7, random(40)+35, random(100)+100, random(100)+100, random(10)+1)
+					it.construct(i, random(15)+8, random(15)+8, random(40)+35, random(100)+100, random(100)+100, random(10)+1, characters[random(characters.size())])
 					it.resourceMiningAbility['water'] = false
 					i+=1
 				}

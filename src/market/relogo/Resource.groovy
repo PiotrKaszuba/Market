@@ -44,7 +44,7 @@ class Resource extends ReLogoTurtle {
 		def mined = sumOfArithmeticSequence(elapsed_time, base_mine, r)
 		mined = Math.round(mined).toInteger()
 		if(type.equals('gold'))
-			mined *= (UserObserver.globalPrice['water'] + UserObserver.globalPrice['rice'])/2
+			mined *= (UserObserver.globalPrice['water'] + UserObserver.globalPrice['rice'])/6
 		increaseTraderRes(trader, mined)
 	}
 	
